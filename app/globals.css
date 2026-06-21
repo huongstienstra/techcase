@@ -2,15 +2,16 @@
   --bg: #f8fafd;
   --surface: #ffffff;
   --surface-soft: #f1f4f9;
-  --surface-green: #e9f6ef;
+  --surface-ai: #eef2ff;
   --ink: #202124;
   --muted: #5f6368;
   --faint: #80868b;
   --line: #dadce0;
   --line-strong: #bdc1c6;
-  --android: #3ddc84;
-  --android-dark: #0b8043;
-  --blue: #1a73e8;
+  --ai: #7c3aed;
+  --ai-dark: #4f46e5;
+  --ai-blue: #2563eb;
+  --ai-cyan: #06b6d4;
   --code: #263238;
   --shadow: 0 2px 8px rgba(60, 64, 67, 0.12);
 }
@@ -82,11 +83,10 @@ select {
 
 .rail-brand::before {
   background:
-    linear-gradient(180deg, #34a853 0 44%, transparent 44%),
-    radial-gradient(circle at 34% 28%, #202124 0 2px, transparent 3px),
-    radial-gradient(circle at 66% 28%, #202124 0 2px, transparent 3px),
-    var(--android);
-  border-radius: 10px 10px 6px 6px;
+    radial-gradient(circle at 32% 30%, rgba(255, 255, 255, 0.88), transparent 18%),
+    radial-gradient(circle at 70% 72%, rgba(6, 182, 212, 0.9), transparent 20%),
+    linear-gradient(135deg, var(--ai-dark), var(--ai), #d946ef);
+  border-radius: 9px;
   content: "";
   height: 28px;
   width: 28px;
@@ -116,8 +116,8 @@ select {
 }
 
 .rail-button.is-active {
-  background: var(--surface-green);
-  color: var(--android-dark);
+  background: var(--surface-ai);
+  color: var(--ai-dark);
 }
 
 .dashboard-shell {
@@ -160,12 +160,12 @@ select {
 }
 
 .date-strip strong {
-  color: var(--android-dark);
+  color: var(--ai-dark);
   position: relative;
 }
 
 .date-strip strong::after {
-  background: var(--android-dark);
+  background: linear-gradient(90deg, var(--ai-blue), var(--ai), #d946ef);
   border-radius: 999px;
   bottom: -22px;
   content: "";
@@ -178,8 +178,8 @@ select {
 .source-toggle,
 .link-button {
   align-items: center;
-  background: var(--android-dark);
-  border: 1px solid var(--android-dark);
+  background: linear-gradient(135deg, var(--ai-blue), var(--ai));
+  border: 1px solid transparent;
   border-radius: 22px;
   color: #fff;
   display: inline-flex;
@@ -192,13 +192,14 @@ select {
 
 .source-toggle:hover,
 .link-button:hover {
-  background: #066736;
+  background: linear-gradient(135deg, #1d4ed8, #6d28d9);
 }
 
 .intro {
   background:
-    radial-gradient(circle at 90% 15%, rgba(61, 220, 132, 0.26), transparent 26%),
-    linear-gradient(180deg, #fff, #f5f9ff);
+    radial-gradient(circle at 88% 12%, rgba(124, 58, 237, 0.18), transparent 26%),
+    radial-gradient(circle at 72% 68%, rgba(6, 182, 212, 0.12), transparent 24%),
+    linear-gradient(180deg, #fff, #f6f8ff);
   border-bottom: 1px solid var(--line);
   padding: 54px 40px 46px;
 }
@@ -207,7 +208,7 @@ select {
 .section-title,
 .filter-title,
 .feature-kicker {
-  color: var(--android-dark);
+  color: var(--ai-dark);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0;
@@ -260,7 +261,7 @@ select {
 }
 
 .results-count {
-  color: var(--android-dark);
+  color: var(--ai-dark);
   font-weight: 600;
   white-space: nowrap;
 }
@@ -290,7 +291,7 @@ select {
 
 .search-field:focus-within {
   background: #fff;
-  border-color: var(--blue);
+  border-color: var(--ai-dark);
 }
 
 .search-field input,
@@ -376,7 +377,7 @@ select {
 
 .case-card:hover,
 .discovery-card:hover {
-  border-color: var(--blue);
+  border-color: var(--ai-dark);
   box-shadow: var(--shadow);
   transform: translateY(-1px);
 }
@@ -387,10 +388,10 @@ select {
 
 .case-duration {
   align-items: center;
-  background: var(--surface-green);
-  border: 1px solid rgba(11, 128, 67, 0.18);
+  background: var(--surface-ai);
+  border: 1px solid rgba(79, 70, 229, 0.18);
   border-radius: 999px;
-  color: var(--android-dark);
+  color: var(--ai-dark);
   display: inline-flex;
   font-size: 12px;
   font-weight: 700;
@@ -403,7 +404,7 @@ select {
   align-items: center;
   background: var(--code);
   border-radius: 8px;
-  color: var(--android);
+  color: #a5b4fc;
   display: flex;
   font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 15px;
@@ -470,13 +471,13 @@ select {
 }
 
 .tag {
-  background: #e8f0fe;
-  color: #185abc;
+  background: var(--surface-ai);
+  color: var(--ai-dark);
 }
 
 .metric {
-  background: var(--surface-green);
-  color: var(--android-dark);
+  background: #ecfeff;
+  color: #0e7490;
 }
 
 .feature-panel {
@@ -496,7 +497,8 @@ select {
 
 .feature-image {
   background:
-    linear-gradient(135deg, rgba(61, 220, 132, 0.18), transparent 52%),
+    radial-gradient(circle at 72% 26%, rgba(217, 70, 239, 0.2), transparent 22%),
+    linear-gradient(135deg, rgba(79, 70, 229, 0.18), transparent 52%),
     #f1f3f4;
   min-height: 220px;
   overflow: hidden;
@@ -518,11 +520,11 @@ select {
 
 .feature-image::after {
   background:
-    linear-gradient(90deg, var(--android) 0 34%, transparent 34%),
-    linear-gradient(#90caf9 0 0),
+    linear-gradient(90deg, var(--ai) 0 34%, transparent 34%),
+    linear-gradient(#67e8f9 0 0),
     linear-gradient(#fff 0 0),
     linear-gradient(#fff 0 0),
-    linear-gradient(#b2dfdb 0 0);
+    linear-gradient(#c4b5fd 0 0);
   background-position:
     84px 72px,
     84px 104px,
@@ -550,9 +552,9 @@ select {
 }
 
 .feature-pill {
-  background: #e8f0fe;
+  background: var(--surface-ai);
   border-radius: 999px;
-  color: #185abc;
+  color: var(--ai-dark);
   display: inline-flex;
   font-size: 12px;
   font-weight: 600;
@@ -616,7 +618,7 @@ select {
 
 .reset-button,
 .inline-reset-button {
-  background: var(--blue);
+  background: linear-gradient(135deg, var(--ai-blue), var(--ai));
   border: 0;
   border-radius: 22px;
   color: #fff;
@@ -629,9 +631,9 @@ select {
 
 .spinner {
   animation: spin 900ms linear infinite;
-  border: 2px solid rgba(11, 128, 67, 0.2);
+  border: 2px solid rgba(79, 70, 229, 0.2);
   border-radius: 999px;
-  border-top-color: var(--android-dark);
+  border-top-color: var(--ai-dark);
   flex: 0 0 auto;
   height: 18px;
   width: 18px;
@@ -644,7 +646,7 @@ select {
 }
 
 .discovery-label {
-  color: var(--android-dark);
+  color: var(--ai-dark);
   font-size: 13px;
   font-weight: 600;
   margin: 8px 0 0;
@@ -678,9 +680,9 @@ select {
 
 .brand-mark {
   align-items: center;
-  background: var(--android);
+  background: linear-gradient(135deg, var(--ai-blue), var(--ai));
   border-radius: 8px;
-  color: var(--code);
+  color: #fff;
   display: inline-flex;
   font-weight: 700;
   height: 36px;
@@ -725,7 +727,7 @@ select {
 }
 
 .back-link {
-  color: var(--blue);
+  color: var(--ai-blue);
   font-weight: 600;
 }
 
