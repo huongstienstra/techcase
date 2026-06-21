@@ -14,6 +14,8 @@ type DiscoveryResult = {
   reason: string;
 };
 
+type DiscoverySource = "company-feed" | "gemini";
+
 const DISCOVERY_TIMEOUT_MS = 1000 * 24;
 
 function normalizeText(value: string): string {
@@ -77,6 +79,7 @@ export function CaseStudyExplorer() {
   const [query, setQuery] = useState("");
   const [discoveryResults, setDiscoveryResults] = useState<DiscoveryResult[]>([]);
   const [discoveryError, setDiscoveryError] = useState("");
+  const [discoverySource, setDiscoverySource] = useState<DiscoverySource>("gemini");
   const [didSearchGemini, setDidSearchGemini] = useState(false);
   const [isDiscovering, setIsDiscovering] = useState(false);
   const hasActiveSearch = query.trim() !== "";
@@ -135,6 +138,7 @@ export function CaseStudyExplorer() {
         const payload = (await response.json()) as {
           error?: string;
           results?: DiscoveryResult[];
+          source?: DiscoverySource;
         };
 
         if (!response.ok) {
@@ -144,6 +148,7 @@ export function CaseStudyExplorer() {
         }
 
         setDiscoveryResults(payload.results ?? []);
+        setDiscoverySource(payload.source ?? "gemini");
         setDidSearchGemini(true);
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
@@ -218,7 +223,11 @@ export function CaseStudyExplorer() {
             </div>
             {discoveryResults.length > 0 ? (
               <div className="discovery-results" aria-label="Gemini discovered results">
-                <p className="discovery-label">Discovered by Gemini Search</p>
+                <p className="discovery-label">
+                  {discoverySource === "company-feed"
+                    ? "Latest from company tech blog"
+                    : "Discovered by Gemini Search"}
+                </p>
                 {discoveryResults.map((result) => (
                   <a
                     className="discovery-card"

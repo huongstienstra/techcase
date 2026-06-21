@@ -51,12 +51,20 @@ type DiscoveryResult = {
   reason: string;
 };
 
+type CompanySource = {
+  aliases: string[];
+  company: string;
+  feedUrl: string;
+  publisher: string;
+};
+
 type DiscoveryPayload = {
   citations?: Array<{
     title: string;
     uri: string;
   }>;
   results: DiscoveryResult[];
+  source?: "company-feed" | "gemini";
 };
 
 type CacheEntry = {
@@ -79,6 +87,15 @@ const discoveryRateLimit = globalStore.discoveryRateLimit ?? new Map<string, Rat
 
 globalStore.discoveryCache = discoveryCache;
 globalStore.discoveryRateLimit = discoveryRateLimit;
+
+const COMPANY_SOURCES: CompanySource[] = [
+  {
+    aliases: ["grab"],
+    company: "Grab",
+    feedUrl: "https://engineering.grab.com/feed.xml",
+    publisher: "Grab Tech Blog",
+  },
+];
 
 function getClientId(request: Request): string {
   const forwardedFor = request.headers.get("x-forwarded-for");
@@ -184,6 +201,102 @@ function normalizeResults(value: unknown): DiscoveryResult[] {
     })
     .filter((item): item is DiscoveryResult => item !== null)
     .slice(0, 5);
+}
+
+function decodeXml(value: string): string {
+  return value
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, "\"")
+    .replace(/&apos;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+}
+
+function stripHtml(value: string): string {
+  return decodeXml(value)
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeQuery(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
+}
+
+function queryTermsWithoutCompany(query: string, source: CompanySource): string[] {
+  const terms = normalizeQuery(query).split(/\s+/).filter(Boolean);
+  const aliases = new Set(source.aliases.map((alias) => alias.toLowerCase()));
+  return terms.filter((term) => !aliases.has(term));
+}
+
+function matchesCompanySource(query: string): CompanySource | null {
+  const terms = new Set(normalizeQuery(query).split(/\s+/).filter(Boolean));
+  return (
+    COMPANY_SOURCES.find((source) =>
+      source.aliases.some((alias) => terms.has(alias.toLowerCase())),
+    ) ?? null
+  );
+}
+
+function parseFeedItems(xml: string, source: CompanySource, query: string): DiscoveryResult[] {
+  const terms = queryTermsWithoutCompany(query, source);
+  const itemMatches = [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)];
+
+  return itemMatches
+    .map((match) => {
+      const item = match[1];
+      const title = stripHtml(item.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? "");
+      const link = stripHtml(item.match(/<link>([\s\S]*?)<\/link>/)?.[1] ?? "");
+      const description = stripHtml(
+        item.match(/<description>([\s\S]*?)<\/description>/)?.[1] ?? "",
+      );
+      const pubDate = stripHtml(item.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] ?? "");
+      const searchable = normalizeQuery(`${title} ${description}`);
+
+      if (!title || !link || !link.startsWith("http")) {
+        return null;
+      }
+
+      if (terms.length > 0 && !terms.every((term) => searchable.includes(term))) {
+        return null;
+      }
+
+      return {
+        title,
+        company: source.company,
+        sourceUrl: link,
+        publisher: source.publisher,
+        summary: description.slice(0, 220) || `Recent ${source.company} engineering post.`,
+        reason: pubDate ? `Published ${pubDate}` : `Fetched from ${source.publisher}`,
+      };
+    })
+    .filter((item): item is DiscoveryResult => item !== null)
+    .slice(0, 5);
+}
+
+async function discoverFromCompanyFeed(query: string): Promise<DiscoveryResult[]> {
+  const source = matchesCompanySource(query);
+
+  if (!source) {
+    return [];
+  }
+
+  const response = await fetch(source.feedUrl, {
+    headers: {
+      Accept: "application/rss+xml, application/xml, text/xml",
+    },
+    next: {
+      revalidate: 60 * 60,
+    },
+  });
+
+  if (!response.ok) {
+    return [];
+  }
+
+  return parseFeedItems(await response.text(), source, query);
 }
 
 function safeHostname(sourceUrl: string): string {
@@ -292,6 +405,22 @@ export async function GET(request: Request) {
     });
   }
 
+  const companyResults = await discoverFromCompanyFeed(query);
+
+  if (companyResults.length > 0) {
+    const payload = {
+      results: companyResults,
+      source: "company-feed" as const,
+    };
+
+    discoveryCache.set(normalizedQuery, {
+      expiresAt: Date.now() + CACHE_TTL_MS,
+      payload,
+    });
+
+    return NextResponse.json(payload);
+  }
+
   if (isRateLimited(getClientId(request))) {
     return NextResponse.json(
       {
@@ -347,7 +476,7 @@ Return a short list of the best matching sources with one sentence each.`,
     const normalizedResults = normalizeResults(parsed);
     const results = citationResults.length > 0 ? citationResults : normalizedResults;
 
-    const payload = { results, citations };
+    const payload = { results, citations, source: "gemini" as const };
 
     discoveryCache.set(normalizedQuery, {
       expiresAt: Date.now() + CACHE_TTL_MS,
