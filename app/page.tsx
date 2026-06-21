@@ -14,7 +14,7 @@ export default function Home() {
           <section className="intro">
             <div>
               <p className="eyebrow">Training / Android app case studies</p>
-              <h1>Find Android app stories by company, problem, and outcome.</h1>
+              <h1>Find Android app stories by company.</h1>
             </div>
           </section>
 

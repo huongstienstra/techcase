@@ -110,16 +110,7 @@ export function CaseStudyExplorer() {
         return false;
       }
 
-      const searchable = normalizeText([
-        study.title,
-        study.company,
-        study.publisher,
-        study.domain,
-        study.summary,
-        ...study.problemAreas,
-        ...study.technologies,
-      ]
-        .join(" "));
+      const searchable = normalizeText(study.company);
       const words = searchableWords(searchable);
 
       const matchesQuery =
@@ -207,7 +198,7 @@ export function CaseStudyExplorer() {
         <div className="results-head">
           <div>
             <p className="section-title">Search the library</p>
-            <p className="section-window">Type a company, platform, technology, problem, or metric</p>
+            <p className="section-window">Type a company name to find related technical stories</p>
           </div>
           <p className="results-count">
             {shownCount} {shownCount === 1 ? "result" : "results"}
@@ -220,7 +211,7 @@ export function CaseStudyExplorer() {
             <input
               id="search"
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search Lyft startup, TikTok jank, Monzo CameraX..."
+              placeholder="Search Netflix, Grab, Uber, Lyft..."
               value={query}
             />
             {query ? (
