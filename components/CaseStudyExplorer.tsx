@@ -16,6 +16,63 @@ type DiscoveryResult = {
 
 const DISCOVERY_TIMEOUT_MS = 1000 * 16;
 
+function normalizeText(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
+}
+
+function searchableWords(value: string): string[] {
+  return normalizeText(value).split(/\s+/).filter(Boolean);
+}
+
+function editDistance(a: string, b: string): number {
+  const rows = a.length + 1;
+  const cols = b.length + 1;
+  const distances = Array.from({ length: rows }, () => Array<number>(cols).fill(0));
+
+  for (let i = 0; i < rows; i += 1) {
+    distances[i][0] = i;
+  }
+
+  for (let j = 0; j < cols; j += 1) {
+    distances[0][j] = j;
+  }
+
+  for (let i = 1; i < rows; i += 1) {
+    for (let j = 1; j < cols; j += 1) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      distances[i][j] = Math.min(
+        distances[i - 1][j] + 1,
+        distances[i][j - 1] + 1,
+        distances[i - 1][j - 1] + cost,
+      );
+    }
+  }
+
+  return distances[a.length][b.length];
+}
+
+function tokenMatches(token: string, fullText: string, words: string[]): boolean {
+  if (fullText.includes(token)) {
+    return true;
+  }
+
+  if (token.length < 5) {
+    return false;
+  }
+
+  return words.some((word) => {
+    if (word.includes(token) || token.includes(word)) {
+      return true;
+    }
+
+    if (Math.abs(word.length - token.length) > 2) {
+      return false;
+    }
+
+    return editDistance(token, word) <= 2;
+  });
+}
+
 export function CaseStudyExplorer() {
   const [query, setQuery] = useState("");
   const [discoveryResults, setDiscoveryResults] = useState<DiscoveryResult[]>([]);
@@ -24,11 +81,11 @@ export function CaseStudyExplorer() {
   const hasActiveSearch = query.trim() !== "";
 
   const filtered = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
+    const normalizedQuery = normalizeText(query.trim());
     const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
 
     return caseStudies.filter((study) => {
-      const searchable = [
+      const searchable = normalizeText([
         study.title,
         study.company,
         study.publisher,
@@ -37,11 +94,12 @@ export function CaseStudyExplorer() {
         ...study.problemAreas,
         ...study.technologies,
       ]
-        .join(" ")
-        .toLowerCase();
+        .join(" "));
+      const words = searchableWords(searchable);
 
       const matchesQuery =
-        queryTokens.length === 0 || queryTokens.every((token) => searchable.includes(token));
+        queryTokens.length === 0 ||
+        queryTokens.every((token) => tokenMatches(token, searchable, words));
       return matchesQuery;
     });
   }, [query]);
@@ -134,7 +192,7 @@ export function CaseStudyExplorer() {
             <div className="empty">
               <p>
                 {isDiscovering
-                  ? "Searching the web with Gemini..."
+                  ? "Searching the web with Gemini. This can take a few seconds..."
                   : "No reviewed local case studies yet."}
               </p>
               {discoveryError ? <p className="empty-note">{discoveryError}</p> : null}
