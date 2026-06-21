@@ -221,6 +221,24 @@ select {
   color: var(--faint);
 }
 
+.search-clear-button {
+  align-items: center;
+  background: var(--ink);
+  border: 0;
+  border-radius: 999px;
+  color: var(--surface-layer);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.search-clear-button:hover {
+  background: #000;
+}
+
 .select-field {
   align-items: center;
   background: #fff;

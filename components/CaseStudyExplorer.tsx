@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { allCompanies, caseStudies } from "@/lib/caseStudies";
-import { ArrowUpRight, Search } from "lucide-react";
+import { ArrowUpRight, Search, X } from "lucide-react";
 
 const PAGE_SIZE = 8;
 const FEATURE_ROTATION_MS = 1000 * 10;
@@ -160,6 +160,16 @@ export function CaseStudyExplorer() {
               placeholder="Search Lyft startup, TikTok jank, Monzo CameraX..."
               value={query}
             />
+            {query ? (
+              <button
+                aria-label="Clear search"
+                className="search-clear-button"
+                onClick={() => setQuery("")}
+                type="button"
+              >
+                <X size={15} />
+              </button>
+            ) : null}
           </label>
           <label className="select-field" htmlFor="company-filter">
             <span>Company</span>
