@@ -536,56 +536,6 @@ select {
   margin: 0;
 }
 
-.empty,
-.search-progress {
-  background: var(--surface);
-  border: 1px dashed var(--line-strong);
-  border-radius: 12px;
-  color: var(--muted);
-  display: grid;
-  gap: 12px;
-  justify-items: center;
-  min-height: 132px;
-  padding: 28px;
-  text-align: center;
-}
-
-.search-progress {
-  align-items: center;
-  border-style: solid;
-  display: flex;
-  justify-content: center;
-  min-height: 76px;
-  text-align: left;
-}
-
-.search-progress.is-error {
-  border-color: #fbbc04;
-}
-
-.empty p {
-  margin: 0;
-}
-
-.empty-note {
-  font-size: 14px;
-  line-height: 1.5;
-  max-width: 520px;
-}
-
-.reset-button,
-.inline-reset-button {
-  background: var(--accent);
-  border: 0;
-  border-radius: 22px;
-  color: #fff;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 600;
-  min-height: 38px;
-  padding: 0 16px;
-}
-
 .spinner {
   animation: spin 900ms linear infinite;
   border: 2px solid rgba(23, 78, 166, 0.18);

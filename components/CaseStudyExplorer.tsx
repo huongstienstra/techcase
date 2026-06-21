@@ -7,6 +7,21 @@ import { ArrowUpRight, Search, X } from "lucide-react";
 
 const PAGE_SIZE = 8;
 const FEATURE_ROTATION_MS = 1000 * 10;
+const DISCOVERY_MIN_QUERY_LENGTH = 3;
+const DISCOVERY_DEBOUNCE_MS = 450;
+
+type DiscoveryResult = {
+  title: string;
+  company: string;
+  sourceUrl: string;
+  publisher: string;
+  summary: string;
+};
+
+type DiscoveryResponse = {
+  error?: string;
+  results?: DiscoveryResult[];
+};
 
 function normalizeText(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
@@ -82,9 +97,12 @@ export function CaseStudyExplorer() {
   const [selectedCompany, setSelectedCompany] = useState("");
   const [page, setPage] = useState(1);
   const [featured, setFeatured] = useState(caseStudies[0]);
-  const hasActiveSearch = query.trim() !== "" || selectedCompany !== "";
+  const [discoveryResults, setDiscoveryResults] = useState<DiscoveryResult[]>([]);
+  const [isDiscovering, setIsDiscovering] = useState(false);
+  const [discoveryError, setDiscoveryError] = useState("");
   const normalizedQuery = normalizeText(query.trim());
   const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
+  const trimmedQuery = query.trim();
 
   const localResults = useMemo(() => {
     return caseStudies.filter((study) => {
@@ -111,7 +129,10 @@ export function CaseStudyExplorer() {
     });
   }, [queryTokens, selectedCompany]);
 
-  const shownCount = localResults.length;
+  const shouldSearchSources =
+    trimmedQuery.length >= DISCOVERY_MIN_QUERY_LENGTH && localResults.length === 0;
+  const shownCount =
+    localResults.length > 0 ? localResults.length : shouldSearchSources ? discoveryResults.length : 0;
   const pageCount = Math.max(1, Math.ceil(localResults.length / PAGE_SIZE));
   const pageStart = (page - 1) * PAGE_SIZE;
   const pagedLocalResults = localResults.slice(pageStart, pageStart + PAGE_SIZE);
@@ -137,6 +158,48 @@ export function CaseStudyExplorer() {
       setPage(pageCount);
     }
   }, [page, pageCount]);
+
+  useEffect(() => {
+    if (!shouldSearchSources) {
+      setDiscoveryResults([]);
+      setDiscoveryError("");
+      setIsDiscovering(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(async () => {
+      setIsDiscovering(true);
+      setDiscoveryError("");
+
+      try {
+        const response = await fetch(`/api/discover?q=${encodeURIComponent(trimmedQuery)}`, {
+          signal: controller.signal,
+        });
+        const payload = (await response.json()) as DiscoveryResponse;
+
+        if (!response.ok) {
+          throw new Error(payload.error || "Search failed.");
+        }
+
+        setDiscoveryResults(payload.results ?? []);
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setDiscoveryResults([]);
+          setDiscoveryError(error instanceof Error ? error.message : "Search failed.");
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsDiscovering(false);
+        }
+      }
+    }, DISCOVERY_DEBOUNCE_MS);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeout);
+    };
+  }, [shouldSearchSources, trimmedQuery]);
 
   return (
     <section className="workspace" id="library" aria-label="Case study explorer">
@@ -241,27 +304,37 @@ export function CaseStudyExplorer() {
               </nav>
             ) : null}
           </>
-        ) : (
-          <div className="empty">
-            <p>No Android app stories found for "{query.trim()}".</p>
-            <p className="empty-note">
-              Try a company or Android topic like Lyft, startup, CameraX, Compose, Kotlin, app quality,
-              or video playback.
-            </p>
-            {hasActiveSearch ? (
-              <button
-                className="reset-button"
-                onClick={() => {
-                  setQuery("");
-                  setSelectedCompany("");
-                }}
-                type="button"
-              >
-                Clear search
-              </button>
+        ) : shouldSearchSources ? (
+          <div className="discovery-block" aria-live="polite">
+            {isDiscovering ? <p className="discovery-label">Searching sources...</p> : null}
+            {!isDiscovering && discoveryError ? (
+              <p className="discovery-label">Search is temporarily unavailable.</p>
+            ) : null}
+            {discoveryResults.length > 0 ? (
+              <div className="discovery-results">
+                {discoveryResults.map((result) => (
+                  <a
+                    className="discovery-card"
+                    href={result.sourceUrl}
+                    key={result.sourceUrl}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <div className="case-body">
+                      <div className="case-meta">
+                        {result.company ? <span>{result.company}</span> : null}
+                        {result.publisher ? <span>{result.publisher}</span> : null}
+                      </div>
+                      <h2 className="case-title">{result.title}</h2>
+                      {result.summary ? <p className="case-summary">{result.summary}</p> : null}
+                    </div>
+                    <ArrowUpRight className="case-arrow" size={19} />
+                  </a>
+                ))}
+              </div>
             ) : null}
           </div>
-        )}
+        ) : null}
       </div>
 
       <aside className="feature-panel" aria-label="Featured case study">
