@@ -272,8 +272,7 @@ export function CaseStudyExplorer() {
               </div>
             ) : null}
             {aiResults.length > 0 && !isDiscovering ? (
-              <div className="discovery-results" aria-label="Discovered Android app stories">
-                <p className="discovery-label">Discovered sources</p>
+              <div className="discovery-results" aria-label="Suggested Android app stories">
                 {aiResults.map((result) => (
                   <a
                     className="discovery-card"
