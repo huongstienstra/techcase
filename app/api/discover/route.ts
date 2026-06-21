@@ -7,6 +7,7 @@ const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const RATE_LIMIT_WINDOW_MS = 1000 * 60;
 const RATE_LIMIT_MAX_REQUESTS = 8;
 const MAX_QUERY_LENGTH = 120;
+const GEMINI_TIMEOUT_MS = 1000 * 14;
 
 type DiscoveryResult = {
   title: string;
@@ -71,6 +72,24 @@ function isRateLimited(clientId: string): boolean {
 
   existing.count += 1;
   return existing.count > RATE_LIMIT_MAX_REQUESTS;
+}
+
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeout = setTimeout(() => {
+      reject(new Error("Gemini discovery timed out. Please try again."));
+    }, timeoutMs);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+  }
 }
 
 function extractJson(text: string): unknown {
@@ -159,7 +178,8 @@ export async function GET(request: Request) {
   if (!apiKey) {
     return NextResponse.json(
       {
-        error: "Gemini search is not configured. Add GEMINI_API_KEY to .env.local.",
+        error:
+          "Gemini search is not configured. Add GEMINI_API_KEY in Vercel environment variables and redeploy.",
         results: [],
       },
       { status: 503 },
@@ -169,9 +189,10 @@ export async function GET(request: Request) {
   const ai = new GoogleGenAI({ apiKey });
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: `Find technical case-study articles for this search: "${query}".
+    const response = await withTimeout(
+      ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: `Find technical case-study articles for this search: "${query}".
 
 Return only articles from company engineering blogs, official developer stories, vendor case studies, or credible technical publications.
 Prefer big-company case stories. Avoid generic tutorials, SEO listicles, job posts, and unrelated marketing pages.
@@ -185,10 +206,12 @@ Return JSON only. The response must be an array of 1 to 5 objects with:
 - reason
 
 The sourceUrl must be the original article URL.`,
-      config: {
-        tools: [{ googleSearch: {} }],
-      },
-    });
+        config: {
+          tools: [{ googleSearch: {} }],
+        },
+      }),
+      GEMINI_TIMEOUT_MS,
+    );
 
     const parsed = extractJson(response.text ?? "[]");
     const results = normalizeResults(parsed);

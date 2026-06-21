@@ -14,6 +14,8 @@ type DiscoveryResult = {
   reason: string;
 };
 
+const DISCOVERY_TIMEOUT_MS = 1000 * 16;
+
 export function CaseStudyExplorer() {
   const [query, setQuery] = useState("");
   const [discoveryResults, setDiscoveryResults] = useState<DiscoveryResult[]>([]);
@@ -61,6 +63,10 @@ export function CaseStudyExplorer() {
     setDiscoveryError("");
 
     const timer = window.setTimeout(async () => {
+      const timeout = window.setTimeout(() => {
+        controller.abort();
+      }, DISCOVERY_TIMEOUT_MS);
+
       try {
         const response = await fetch(`/api/discover?q=${encodeURIComponent(trimmedQuery)}`, {
           signal: controller.signal,
@@ -79,12 +85,15 @@ export function CaseStudyExplorer() {
         setDiscoveryResults(payload.results ?? []);
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
+          setDiscoveryError("Gemini search took too long. Please try again.");
+          setDiscoveryResults([]);
           return;
         }
 
         setDiscoveryError("Gemini discovery failed.");
         setDiscoveryResults([]);
       } finally {
+        window.clearTimeout(timeout);
         setIsDiscovering(false);
       }
     }, 650);
