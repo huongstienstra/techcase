@@ -140,7 +140,7 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
 
   const timeoutPromise = new Promise<never>((_, reject) => {
     timeout = setTimeout(() => {
-      reject(new Error("Gemini discovery timed out. Please try again."));
+      reject(new Error("Expanded search timed out. Please try again."));
     }, timeoutMs);
   });
 
@@ -427,7 +427,7 @@ function resultsFromCitations(
         sourceUrl: citation.resolvedUrl,
         publisher: safeHostname(citation.resolvedUrl),
         summary: `Potential technical source discovered for "${query}". Open the article to review and save it as a curated case study.`,
-        reason: "Generated from Gemini grounding citation metadata.",
+        reason: "Generated from web discovery citation metadata.",
       })),
   );
 }
@@ -492,7 +492,7 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         error:
-          "Gemini search is not configured. Add GEMINI_API_KEY in Vercel environment variables and redeploy.",
+          "Expanded search is not configured. Add the search API key in Vercel environment variables and redeploy.",
         results: [],
       },
       { status: 503 },
@@ -540,7 +540,7 @@ Return a short list of the best matching sources with one sentence each.`,
 
     return NextResponse.json(payload);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Gemini discovery failed.";
+    const message = error instanceof Error ? error.message : "Expanded search failed.";
 
     return NextResponse.json(
       {

@@ -155,7 +155,7 @@ export function CaseStudyExplorer() {
         };
 
         if (!response.ok) {
-          setAiError(payload.error ?? "Gemini discovery failed.");
+          setAiError(payload.error ?? "Expanded search failed.");
           setAiResults([]);
           return;
         }
@@ -164,13 +164,13 @@ export function CaseStudyExplorer() {
         setDidSearchAi(true);
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
-          setAiError("Gemini search took too long. Please try again.");
+          setAiError("Expanded search took too long. Please try again.");
           setAiResults([]);
           setDidSearchAi(true);
           return;
         }
 
-        setAiError("Gemini discovery failed.");
+        setAiError("Expanded search failed.");
         setAiResults([]);
         setDidSearchAi(true);
       } finally {
@@ -258,7 +258,7 @@ export function CaseStudyExplorer() {
             {isDiscovering ? (
               <div className="search-progress" role="status">
                 <span className="spinner" aria-hidden="true" />
-                <span>Searching Android app stories with Gemini...</span>
+                <span>Searching Android app story sources...</span>
               </div>
             ) : null}
             {aiError ? (
@@ -268,12 +268,12 @@ export function CaseStudyExplorer() {
             ) : null}
             {!isDiscovering && didSearchAi && aiResults.length === 0 && !aiError ? (
               <div className="search-progress">
-                <span>No Android app story sources found with Gemini.</span>
+                <span>No Android app story sources found.</span>
               </div>
             ) : null}
             {aiResults.length > 0 && !isDiscovering ? (
-              <div className="discovery-results" aria-label="Gemini discovered Android app stories">
-                <p className="discovery-label">Discovered by Gemini</p>
+              <div className="discovery-results" aria-label="Discovered Android app stories">
+                <p className="discovery-label">Discovered sources</p>
                 {aiResults.map((result) => (
                   <a
                     className="discovery-card"
