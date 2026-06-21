@@ -1,31 +1,34 @@
 import { CaseStudyExplorer } from "@/components/CaseStudyExplorer";
-import { Archive, BookOpen, Bookmark, CalendarDays, Home as HomeIcon, UserRound } from "lucide-react";
+import { BookOpen, Camera, Gauge, Layers, Sparkles } from "lucide-react";
 
 export default function Home() {
   return (
     <div className="shell">
-      <div className="ambient ambient-one" />
-      <div className="ambient ambient-two" />
       <main className="app-frame">
         <aside className="side-rail" aria-label="Primary sections">
           <a className="rail-brand" href="/" aria-label="Tech Cases home">
-            ac
+            Android Cases
           </a>
           <nav className="rail-nav">
-            <a className="rail-button is-active" href="/" aria-label="Home">
-              <HomeIcon size={20} />
+            <a className="rail-button is-active" href="/" aria-label="Case studies">
+              <BookOpen size={18} />
+              <span>Case studies</span>
             </a>
-            <a className="rail-button" href="#library" aria-label="Library">
-              <BookOpen size={20} />
+            <a className="rail-button" href="#library" aria-label="Performance">
+              <Gauge size={18} />
+              <span>Performance</span>
             </a>
-            <a className="rail-button" href="#library" aria-label="Sources">
-              <Archive size={20} />
+            <a className="rail-button" href="#library" aria-label="Compose">
+              <Layers size={18} />
+              <span>Compose</span>
             </a>
-            <a className="rail-button" href="#library" aria-label="Saved">
-              <Bookmark size={20} />
+            <a className="rail-button" href="#library" aria-label="Camera">
+              <Camera size={18} />
+              <span>CameraX</span>
             </a>
-            <a className="rail-button" href="#library" aria-label="Profile">
-              <UserRound size={20} />
+            <a className="rail-button" href="#library" aria-label="AI discovery">
+              <Sparkles size={18} />
+              <span>AI discovery</span>
             </a>
           </nav>
         </aside>
@@ -33,26 +36,28 @@ export default function Home() {
         <section className="dashboard-shell">
           <header className="dashboard-top">
             <a className="wordmark" href="/">
-              androidcases
+              Android Developers
             </a>
             <nav className="date-strip" aria-label="Browse modes">
-              <span>Startup</span>
-              <span>Vitals</span>
-              <span>Compose</span>
-              <strong>Today</strong>
-              <span>CameraX</span>
-              <span>Kotlin</span>
+              <span>Essentials</span>
+              <span>Design & Plan</span>
+              <strong>Develop</strong>
+              <span>Google Play</span>
+              <span>Blog</span>
             </nav>
             <a className="source-toggle" href="https://developer.android.com/stories/apps">
-              <CalendarDays size={18} />
-              Sources
+              Source hub
             </a>
           </header>
 
           <section className="intro">
             <div>
-              <p className="eyebrow">Curated Android app stories</p>
-              <h1>Search Android app case studies by company, problem, and outcome.</h1>
+              <p className="eyebrow">Training / Android app case studies</p>
+              <h1>Find Android app stories by company, problem, and outcome.</h1>
+              <p className="intro-copy">
+                Browse source-backed stories from Android Developers, then use Gemini discovery when
+                a company is not in the catalog yet.
+              </p>
             </div>
           </section>
 
