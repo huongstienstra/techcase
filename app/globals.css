@@ -55,69 +55,7 @@ select {
 }
 
 .app-frame {
-  display: grid;
-  grid-template-columns: 256px minmax(0, 1fr);
   min-height: 100vh;
-}
-
-.side-rail {
-  background: var(--surface);
-  border-right: 1px solid var(--line);
-  min-width: 0;
-  min-height: 100vh;
-  padding: 24px 16px;
-  position: sticky;
-  top: 0;
-}
-
-.rail-brand {
-  align-items: center;
-  color: var(--ink);
-  display: inline-flex;
-  font-size: 18px;
-  font-weight: 600;
-  gap: 10px;
-  min-height: 44px;
-  padding: 0 12px;
-}
-
-.rail-brand::before {
-  background:
-    radial-gradient(circle at 32% 30%, rgba(255, 255, 255, 0.88), transparent 18%),
-    radial-gradient(circle at 70% 72%, rgba(6, 182, 212, 0.9), transparent 20%),
-    linear-gradient(135deg, var(--ai-dark), var(--ai), #d946ef);
-  border-radius: 9px;
-  content: "";
-  height: 28px;
-  width: 28px;
-}
-
-.rail-nav {
-  display: grid;
-  gap: 4px;
-  margin-top: 26px;
-}
-
-.rail-button {
-  align-items: center;
-  border-radius: 22px;
-  color: var(--muted);
-  display: flex;
-  font-size: 14px;
-  font-weight: 500;
-  gap: 12px;
-  min-height: 44px;
-  padding: 0 14px;
-}
-
-.rail-button:hover {
-  background: var(--surface-soft);
-  color: var(--ink);
-}
-
-.rail-button.is-active {
-  background: var(--surface-ai);
-  color: var(--ai-dark);
 }
 
 .dashboard-shell {
@@ -766,7 +704,7 @@ select {
 
 @media (max-width: 1180px) {
   .app-frame {
-    grid-template-columns: 220px minmax(0, 1fr);
+    min-height: 100vh;
   }
 
   .workspace {
@@ -779,37 +717,6 @@ select {
 }
 
 @media (max-width: 900px) {
-  .app-frame {
-    grid-template-columns: 1fr;
-  }
-
-  .side-rail {
-    border-bottom: 1px solid var(--line);
-    border-right: 0;
-    min-height: auto;
-    overflow: hidden;
-    padding: 14px 18px;
-    position: static;
-    width: 100%;
-  }
-
-  .rail-brand {
-    padding: 0;
-  }
-
-  .rail-nav {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-    max-width: 100%;
-    overflow-x: auto;
-    padding-bottom: 2px;
-  }
-
-  .rail-button {
-    flex: 0 0 auto;
-  }
-
   .dashboard-top {
     grid-template-columns: 1fr auto;
     padding: 0 22px;
