@@ -15,6 +15,7 @@ type DiscoveryResult = {
 };
 
 const DISCOVERY_TIMEOUT_MS = 1000 * 24;
+const PAGE_SIZE = 8;
 
 function normalizeText(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
@@ -76,6 +77,7 @@ function tokenMatches(token: string, fullText: string, words: string[]): boolean
 export function CaseStudyExplorer() {
   const [query, setQuery] = useState("");
   const [selectedCompany, setSelectedCompany] = useState("");
+  const [page, setPage] = useState(1);
   const [aiResults, setAiResults] = useState<DiscoveryResult[]>([]);
   const [aiError, setAiError] = useState("");
   const [didSearchAi, setDidSearchAi] = useState(false);
@@ -121,7 +123,22 @@ export function CaseStudyExplorer() {
     localResults.length === 0 &&
     !queryMatchesKnownCompany;
   const shownCount = shouldDiscoverWithAi ? aiResults.length : localResults.length;
+  const pageCount = Math.max(1, Math.ceil(localResults.length / PAGE_SIZE));
+  const pageStart = (page - 1) * PAGE_SIZE;
+  const pagedLocalResults = localResults.slice(pageStart, pageStart + PAGE_SIZE);
+  const firstVisibleResult = localResults.length > 0 ? pageStart + 1 : 0;
+  const lastVisibleResult = Math.min(pageStart + pagedLocalResults.length, localResults.length);
   const featured = caseStudies[0];
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, selectedCompany]);
+
+  useEffect(() => {
+    if (page > pageCount) {
+      setPage(pageCount);
+    }
+  }, [page, pageCount]);
 
   useEffect(() => {
     const trimmedQuery = query.trim();
@@ -226,33 +243,58 @@ export function CaseStudyExplorer() {
         </div>
 
         {localResults.length > 0 ? (
-          <div className="cards">
-            {localResults.map((study) => (
-              <Link className="case-card" href={`/case-studies/${study.slug}`} key={study.slug}>
-                <div className="case-duration">{study.qualityScore}/5</div>
-                <div className="case-thumb" aria-hidden="true">
-                  {study.company.slice(0, 2)}
-                </div>
-                <div className="case-body">
-                  <div className="case-meta">
-                    <span>{study.company}</span>
-                    <span>{study.publisherType}</span>
-                    <span>{study.year}</span>
+          <>
+            <div className="cards">
+              {pagedLocalResults.map((study) => (
+                <Link className="case-card" href={`/case-studies/${study.slug}`} key={study.slug}>
+                  <div className="case-duration">{study.qualityScore}/5</div>
+                  <div className="case-thumb" aria-hidden="true">
+                    {study.company.slice(0, 2)}
                   </div>
-                  <h2 className="case-title">{study.title}</h2>
-                  <p className="case-summary">{study.summary}</p>
-                  <div className="tag-row">
-                    {study.problemAreas.slice(0, 3).map((area) => (
-                      <span className="tag" key={`${study.slug}-${area}`}>
-                        {area}
-                      </span>
-                    ))}
+                  <div className="case-body">
+                    <div className="case-meta">
+                      <span>{study.company}</span>
+                      <span>{study.publisherType}</span>
+                      <span>{study.year}</span>
+                    </div>
+                    <h2 className="case-title">{study.title}</h2>
+                    <p className="case-summary">{study.summary}</p>
+                    <div className="tag-row">
+                      {study.problemAreas.slice(0, 3).map((area) => (
+                        <span className="tag" key={`${study.slug}-${area}`}>
+                          {area}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <ArrowUpRight className="case-arrow" size={19} />
-              </Link>
-            ))}
-          </div>
+                  <ArrowUpRight className="case-arrow" size={19} />
+                </Link>
+              ))}
+            </div>
+            {localResults.length > PAGE_SIZE ? (
+              <nav className="pagination" aria-label="Case study pages">
+                <button
+                  className="pagination-button"
+                  disabled={page === 1}
+                  onClick={() => setPage((currentPage) => Math.max(1, currentPage - 1))}
+                  type="button"
+                >
+                  Previous
+                </button>
+                <span className="pagination-summary">
+                  {firstVisibleResult}-{lastVisibleResult} of {localResults.length}
+                </span>
+                <button
+                  className="pagination-button"
+                  disabled={page === pageCount}
+                  onClick={() => setPage((currentPage) => Math.min(pageCount, currentPage + 1))}
+                  type="button"
+                >
+                  Next
+                </button>
+              </nav>
+            ) : null}
+          </>
         ) : shouldDiscoverWithAi ? (
           <div className="discovery-block">
             {isDiscovering ? (
