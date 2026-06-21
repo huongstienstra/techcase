@@ -16,6 +16,7 @@ type DiscoveryResult = {
 
 const DISCOVERY_TIMEOUT_MS = 1000 * 24;
 const PAGE_SIZE = 8;
+const FEATURE_ROTATION_MS = 1000 * 10;
 
 function normalizeText(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
@@ -74,6 +75,18 @@ function tokenMatches(token: string, fullText: string, words: string[]): boolean
   });
 }
 
+function pickRandomCaseStudy(currentSlug?: string) {
+  if (caseStudies.length <= 1) {
+    return caseStudies[0];
+  }
+
+  const candidates = currentSlug
+    ? caseStudies.filter((study) => study.slug !== currentSlug)
+    : caseStudies;
+  const index = Math.floor(Math.random() * candidates.length);
+  return candidates[index];
+}
+
 export function CaseStudyExplorer() {
   const [query, setQuery] = useState("");
   const [selectedCompany, setSelectedCompany] = useState("");
@@ -82,6 +95,7 @@ export function CaseStudyExplorer() {
   const [aiError, setAiError] = useState("");
   const [didSearchAi, setDidSearchAi] = useState(false);
   const [isDiscovering, setIsDiscovering] = useState(false);
+  const [featured, setFeatured] = useState(caseStudies[0]);
   const hasActiveSearch = query.trim() !== "" || selectedCompany !== "";
   const normalizedQuery = normalizeText(query.trim());
   const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
@@ -128,11 +142,20 @@ export function CaseStudyExplorer() {
   const pagedLocalResults = localResults.slice(pageStart, pageStart + PAGE_SIZE);
   const firstVisibleResult = localResults.length > 0 ? pageStart + 1 : 0;
   const lastVisibleResult = Math.min(pageStart + pagedLocalResults.length, localResults.length);
-  const featured = caseStudies[0];
 
   useEffect(() => {
     setPage(1);
   }, [query, selectedCompany]);
+
+  useEffect(() => {
+    setFeatured((currentFeatured) => pickRandomCaseStudy(currentFeatured.slug));
+
+    const interval = window.setInterval(() => {
+      setFeatured((currentFeatured) => pickRandomCaseStudy(currentFeatured.slug));
+    }, FEATURE_ROTATION_MS);
+
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (page > pageCount) {
