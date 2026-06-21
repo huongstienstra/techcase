@@ -68,7 +68,7 @@ select {
   border-bottom: 1px solid var(--line);
   display: grid;
   gap: 24px;
-  grid-template-columns: 220px minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   min-height: 64px;
   padding: 0 40px;
   position: sticky;
@@ -80,37 +80,6 @@ select {
   color: var(--ink);
   font-size: 19px;
   font-weight: 500;
-}
-
-.date-strip {
-  align-items: center;
-  display: flex;
-  gap: 24px;
-  min-width: 0;
-}
-
-.date-strip span,
-.date-strip strong {
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.date-strip strong {
-  color: var(--ai-dark);
-  position: relative;
-}
-
-.date-strip strong::after {
-  background: linear-gradient(90deg, var(--ai-blue), var(--ai), #d946ef);
-  border-radius: 999px;
-  bottom: -22px;
-  content: "";
-  height: 3px;
-  left: 0;
-  position: absolute;
-  right: 0;
 }
 
 .source-toggle,
@@ -721,10 +690,6 @@ select {
     grid-template-columns: 1fr auto;
     padding: 0 22px;
     position: static;
-  }
-
-  .date-strip {
-    display: none;
   }
 
   .intro {

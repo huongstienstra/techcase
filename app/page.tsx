@@ -9,13 +9,6 @@ export default function Home() {
             <a className="wordmark" href="/">
               Android Developers
             </a>
-            <nav className="date-strip" aria-label="Browse modes">
-              <span>Essentials</span>
-              <span>Design & Plan</span>
-              <strong>Develop</strong>
-              <span>Google Play</span>
-              <span>Blog</span>
-            </nav>
             <a className="source-toggle" href="https://developer.android.com/stories/apps">
               Source hub
             </a>
