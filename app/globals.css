@@ -1,19 +1,18 @@
 :root {
-  --bg: #f8fafd;
+  --bg: #f7f7f2;
   --surface: #ffffff;
-  --surface-soft: #f1f4f9;
-  --surface-layer: #eaf2ff;
-  --ink: #202124;
-  --muted: #5f6368;
-  --faint: #80868b;
-  --line: #dadce0;
-  --line-strong: #bdc1c6;
-  --accent: #0f5fca;
-  --accent-dark: #174ea6;
-  --accent-soft: #dbeafe;
-  --accent-cyan: #0e7490;
-  --code: #263238;
-  --shadow: 0 2px 8px rgba(60, 64, 67, 0.12);
+  --surface-soft: #f0f0ea;
+  --surface-layer: #efff6f;
+  --ink: #181816;
+  --muted: #5d5d57;
+  --faint: #86867d;
+  --line: #d8d8ce;
+  --line-strong: #9b9b90;
+  --accent: #181816;
+  --accent-dark: #000000;
+  --accent-soft: #efff6f;
+  --code: #201f1b;
+  --shadow: 0 8px 22px rgba(24, 24, 22, 0.08);
 }
 
 * {
@@ -87,7 +86,7 @@ select {
   align-items: center;
   background: var(--accent);
   border: 1px solid var(--accent);
-  border-radius: 22px;
+  border-radius: 18px;
   color: #fff;
   display: inline-flex;
   font-size: 14px;
@@ -105,7 +104,7 @@ select {
 
 .intro {
   background:
-    linear-gradient(180deg, #fff 0 62%, #f3f7ff 62% 100%);
+    linear-gradient(180deg, #fff 0 58%, var(--surface-layer) 58% 100%);
   border-bottom: 1px solid var(--line);
   padding: 54px 40px 46px;
 }
@@ -114,7 +113,7 @@ select {
 .section-title,
 .filter-title,
 .feature-kicker {
-  color: var(--accent-dark);
+  color: var(--accent);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0;
@@ -173,9 +172,9 @@ select {
 }
 
 .filters {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  background: #fff;
+  border: 2px solid var(--ink);
+  border-radius: 22px;
   box-shadow: var(--shadow);
   display: grid;
   gap: 12px;
@@ -186,8 +185,8 @@ select {
 .search-field {
   align-items: center;
   background: var(--surface-soft);
-  border: 1px solid transparent;
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
   color: var(--muted);
   display: flex;
   gap: 12px;
@@ -225,8 +224,8 @@ select {
 .select-field {
   align-items: center;
   background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
   display: grid;
   gap: 12px;
   grid-template-columns: auto minmax(0, 1fr);
@@ -268,8 +267,8 @@ select {
 .discovery-card {
   align-items: center;
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 22px;
   display: grid;
   gap: 16px;
   grid-template-columns: 42px 56px minmax(0, 1fr) 28px;
@@ -283,7 +282,7 @@ select {
 
 .case-card:hover,
 .discovery-card:hover {
-  border-color: var(--accent);
+  border-color: var(--ink);
   box-shadow: var(--shadow);
   transform: translateY(-1px);
 }
@@ -295,7 +294,7 @@ select {
 .case-duration {
   align-items: center;
   background: var(--surface-layer);
-  border: 1px solid rgba(23, 78, 166, 0.18);
+  border: 1px solid rgba(24, 24, 22, 0.22);
   border-radius: 999px;
   color: var(--accent-dark);
   display: inline-flex;
@@ -309,8 +308,8 @@ select {
 .case-thumb {
   align-items: center;
   background: var(--code);
-  border-radius: 8px;
-  color: #a5b4fc;
+  border-radius: 16px;
+  color: var(--surface-layer);
   display: flex;
   font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 15px;
@@ -378,12 +377,14 @@ select {
 
 .tag {
   background: var(--surface-layer);
-  color: var(--accent-dark);
+  border: 1px dashed rgba(24, 24, 22, 0.35);
+  color: var(--ink);
 }
 
 .metric {
-  background: #ecfeff;
-  color: var(--accent-cyan);
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  color: var(--surface-layer);
 }
 
 .feature-panel {
@@ -392,8 +393,8 @@ select {
 
 .feature-card {
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 16px;
+  border: 2px solid var(--ink);
+  border-radius: 28px;
   box-shadow: var(--shadow);
   display: grid;
   overflow: hidden;
@@ -403,8 +404,7 @@ select {
 
 .feature-image {
   background:
-    linear-gradient(90deg, #e8f0fe 0 56%, #f8fafc 56% 100%),
-    #f1f3f4;
+    linear-gradient(90deg, var(--surface-layer) 0 72%, var(--ink) 72% 100%);
   min-height: 220px;
   overflow: hidden;
   position: relative;
@@ -412,7 +412,7 @@ select {
 
 .feature-image::before {
   background: var(--code);
-  border-radius: 18px 18px 0 0;
+  border-radius: 18px;
   box-shadow: 0 12px 26px rgba(38, 50, 56, 0.24);
   content: "";
   height: 178px;
@@ -425,11 +425,11 @@ select {
 
 .feature-image::after {
   background:
-    linear-gradient(90deg, var(--accent) 0 34%, transparent 34%),
-    linear-gradient(#7dd3fc 0 0),
+    linear-gradient(90deg, var(--ink) 0 34%, transparent 34%),
+    linear-gradient(var(--ink) 0 0),
     linear-gradient(#fff 0 0),
     linear-gradient(#fff 0 0),
-    linear-gradient(#bfdbfe 0 0);
+    linear-gradient(var(--surface-layer) 0 0);
   background-position:
     84px 72px,
     84px 104px,
@@ -586,7 +586,7 @@ select {
 .brand-mark {
   align-items: center;
   background: var(--accent);
-  border-radius: 8px;
+  border-radius: 12px;
   color: #fff;
   display: inline-flex;
   font-weight: 700;
@@ -623,8 +623,8 @@ select {
 
 .detail {
   background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 16px;
+  border: 2px solid var(--ink);
+  border-radius: 24px;
   box-shadow: var(--shadow);
   display: grid;
   gap: 24px;
