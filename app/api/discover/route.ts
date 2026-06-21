@@ -505,10 +505,10 @@ export async function GET(request: Request) {
     const response = await withTimeout(
       ai.models.generateContent({
         model: GEMINI_MODEL,
-        contents: `Find technical case-study or engineering blog articles for this product search query: "${query}".
+        contents: `Find Android app case-study sources for this search query: "${query}".
 
-Search for articles from company engineering blogs, official developer stories, vendor case studies, and credible technical publications.
-Prefer URLs whose path includes engineering, developer, case-study, architecture, performance, reliability, scaling, migration, infrastructure, android, ios, or mobile.
+Search for official Android Developers app stories, company Android engineering posts, official mobile engineering case studies, and credible technical publications about Android app performance, architecture, app quality, Compose, Kotlin, CameraX, startup, ANRs, crashes, rendering, Play Console, or Android vitals.
+Prefer URLs whose path includes developer, android, stories, apps, case-study, engineering, mobile, architecture, performance, compose, kotlin, camerax, startup, vitals, or app-quality.
 Avoid company homepages, product landing pages, docs homepages, generic tutorials, SEO listicles, job posts, newsletters, and unrelated marketing pages.
 Return a short list of the best matching sources with one sentence each.`,
         config: {
