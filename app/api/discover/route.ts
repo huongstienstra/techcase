@@ -10,6 +10,37 @@ const RATE_LIMIT_MAX_REQUESTS = 8;
 const MAX_QUERY_LENGTH = 120;
 const GEMINI_TIMEOUT_MS = 1000 * 20;
 const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-2.5-flash-lite";
+const BLOCKED_HOSTS = new Set([
+  "google.com",
+  "www.google.com",
+  "vertexaisearch.cloud.google.com",
+]);
+const TECH_SOURCE_HINTS = [
+  "engineering",
+  "developer",
+  "developers",
+  "case-study",
+  "case-studies",
+  "case study",
+  "architecture",
+  "performance",
+  "reliability",
+  "scaling",
+  "scale",
+  "migration",
+  "infrastructure",
+  "technical",
+  "technology",
+  "postmortem",
+  "incident",
+  "android",
+  "ios",
+  "mobile",
+  "cloud",
+  "data",
+  "machine-learning",
+  "ai",
+];
 
 type DiscoveryResult = {
   title: string;
@@ -155,21 +186,82 @@ function normalizeResults(value: unknown): DiscoveryResult[] {
     .slice(0, 5);
 }
 
+function safeHostname(sourceUrl: string): string {
+  try {
+    return new URL(sourceUrl).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+}
+
+function isLikelyUsefulSource(title: string, sourceUrl: string): boolean {
+  let url: URL;
+
+  try {
+    url = new URL(sourceUrl);
+  } catch {
+    return false;
+  }
+
+  const hostname = url.hostname.replace(/^www\./, "");
+
+  if (BLOCKED_HOSTS.has(hostname)) {
+    return false;
+  }
+
+  const path = url.pathname.replace(/\/$/, "");
+
+  if (!path || path === "") {
+    return false;
+  }
+
+  const haystack = `${title} ${hostname} ${url.pathname}`.toLowerCase();
+  return TECH_SOURCE_HINTS.some((hint) => haystack.includes(hint));
+}
+
+async function resolveSourceUrl(sourceUrl: string): Promise<string> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 2500);
+
+  try {
+    const response = await fetch(sourceUrl, {
+      method: "HEAD",
+      redirect: "follow",
+      signal: controller.signal,
+    });
+    return response.url || sourceUrl;
+  } catch {
+    return sourceUrl;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 function resultsFromCitations(
   citations: Array<{
     title: string;
     uri: string;
   }>,
   query: string,
-): DiscoveryResult[] {
-  return citations.slice(0, 5).map((citation) => ({
-    title: citation.title,
-    company: "",
-    sourceUrl: citation.uri,
-    publisher: new URL(citation.uri).hostname.replace(/^www\./, ""),
-    summary: `Web result discovered for "${query}". Open the source to review whether it is a case study.`,
-    reason: "Generated from Gemini grounding citation metadata.",
-  }));
+): Promise<DiscoveryResult[]> {
+  return Promise.all(
+    citations.map(async (citation) => ({
+      title: citation.title,
+      resolvedUrl: await resolveSourceUrl(citation.uri),
+    })),
+  ).then((resolved) =>
+    resolved
+      .filter((citation) => isLikelyUsefulSource(citation.title, citation.resolvedUrl))
+      .slice(0, 5)
+      .map((citation) => ({
+        title: citation.title,
+        company: "",
+        sourceUrl: citation.resolvedUrl,
+        publisher: safeHostname(citation.resolvedUrl),
+        summary: `Potential technical source discovered for "${query}". Open the article to review and save it as a curated case study.`,
+        reason: "Generated from Gemini grounding citation metadata.",
+      })),
+  );
 }
 
 export async function GET(request: Request) {
@@ -229,10 +321,11 @@ export async function GET(request: Request) {
     const response = await withTimeout(
       ai.models.generateContent({
         model: GEMINI_MODEL,
-        contents: `Find source-backed technical case-study articles for: "${query}".
+        contents: `Find technical case-study or engineering blog articles for this product search query: "${query}".
 
 Search for articles from company engineering blogs, official developer stories, vendor case studies, and credible technical publications.
-Prefer big-company case stories. Avoid generic tutorials, SEO listicles, job posts, and unrelated marketing pages.
+Prefer URLs whose path includes engineering, developer, case-study, architecture, performance, reliability, scaling, migration, infrastructure, android, ios, or mobile.
+Avoid company homepages, product landing pages, docs homepages, generic tutorials, SEO listicles, job posts, newsletters, and unrelated marketing pages.
 Return a short list of the best matching sources with one sentence each.`,
         config: {
           tools: [{ googleSearch: {} }],
@@ -249,7 +342,7 @@ Return a short list of the best matching sources with one sentence each.`,
       }))
       .filter((chunk) => chunk.title && chunk.uri)
       .slice(0, 8);
-    const citationResults = resultsFromCitations(citations, query);
+    const citationResults = await resultsFromCitations(citations, query);
     const parsed = tryExtractJson(response.text ?? "[]");
     const normalizedResults = normalizeResults(parsed);
     const results = citationResults.length > 0 ? citationResults : normalizedResults;
