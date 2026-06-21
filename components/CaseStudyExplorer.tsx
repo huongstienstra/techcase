@@ -306,7 +306,33 @@ export function CaseStudyExplorer() {
           </>
         ) : shouldSearchSources ? (
           <div className="discovery-block" aria-live="polite">
-            {isDiscovering ? <p className="discovery-label">Searching sources...</p> : null}
+            {isDiscovering ? (
+              <div className="discovery-wait-card">
+                <div>
+                  <p className="discovery-label">Finding relevant case stories</p>
+                  <p className="discovery-wait-copy">
+                    Checking source pages and preparing readable result cards.
+                  </p>
+                </div>
+                <div className="discovery-skeleton-list" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+                <button
+                  className="discovery-reset-button"
+                  onClick={() => {
+                    setQuery("");
+                    setSelectedCompany("");
+                    setDiscoveryError("");
+                    setDiscoveryResults([]);
+                  }}
+                  type="button"
+                >
+                  Back to local list
+                </button>
+              </div>
+            ) : null}
             {!isDiscovering && discoveryError ? (
               <div className="discovery-fallback">
                 <p className="discovery-label">Search is temporarily unavailable.</p>
