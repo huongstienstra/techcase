@@ -2,12 +2,13 @@ import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
+export const maxDuration = 10;
 
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const RATE_LIMIT_WINDOW_MS = 1000 * 60;
 const RATE_LIMIT_MAX_REQUESTS = 8;
 const MAX_QUERY_LENGTH = 120;
-const GEMINI_TIMEOUT_MS = 1000 * 14;
+const GEMINI_TIMEOUT_MS = 1000 * 8;
 
 type DiscoveryResult = {
   title: string;
@@ -99,6 +100,24 @@ function extractJson(text: string): unknown {
   return JSON.parse(jsonText);
 }
 
+function tryExtractJson(text: string): unknown {
+  try {
+    return extractJson(text);
+  } catch {
+    const arrayMatch = text.match(/\[[\s\S]*\]/);
+
+    if (!arrayMatch) {
+      return [];
+    }
+
+    try {
+      return JSON.parse(arrayMatch[0]);
+    } catch {
+      return [];
+    }
+  }
+}
+
 function normalizeResults(value: unknown): DiscoveryResult[] {
   if (!Array.isArray(value)) {
     return [];
@@ -133,6 +152,23 @@ function normalizeResults(value: unknown): DiscoveryResult[] {
     })
     .filter((item): item is DiscoveryResult => item !== null)
     .slice(0, 5);
+}
+
+function resultsFromCitations(
+  citations: Array<{
+    title: string;
+    uri: string;
+  }>,
+  query: string,
+): DiscoveryResult[] {
+  return citations.slice(0, 5).map((citation) => ({
+    title: citation.title,
+    company: "",
+    sourceUrl: citation.uri,
+    publisher: new URL(citation.uri).hostname.replace(/^www\./, ""),
+    summary: `Web result discovered for "${query}". Open the source to review whether it is a case study.`,
+    reason: "Generated from Gemini grounding citation metadata.",
+  }));
 }
 
 export async function GET(request: Request) {
@@ -213,8 +249,6 @@ The sourceUrl must be the original article URL.`,
       GEMINI_TIMEOUT_MS,
     );
 
-    const parsed = extractJson(response.text ?? "[]");
-    const results = normalizeResults(parsed);
     const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks ?? [];
     const citations = groundingChunks
       .map((chunk) => ({
@@ -223,6 +257,10 @@ The sourceUrl must be the original article URL.`,
       }))
       .filter((chunk) => chunk.title && chunk.uri)
       .slice(0, 8);
+    const parsed = tryExtractJson(response.text ?? "[]");
+    const normalizedResults = normalizeResults(parsed);
+    const results =
+      normalizedResults.length > 0 ? normalizedResults : resultsFromCitations(citations, query);
 
     const payload = { results, citations };
 

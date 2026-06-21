@@ -77,6 +77,7 @@ export function CaseStudyExplorer() {
   const [query, setQuery] = useState("");
   const [discoveryResults, setDiscoveryResults] = useState<DiscoveryResult[]>([]);
   const [discoveryError, setDiscoveryError] = useState("");
+  const [didSearchGemini, setDidSearchGemini] = useState(false);
   const [isDiscovering, setIsDiscovering] = useState(false);
   const hasActiveSearch = query.trim() !== "";
 
@@ -112,6 +113,7 @@ export function CaseStudyExplorer() {
     if (!trimmedQuery || filtered.length > 0) {
       setDiscoveryResults([]);
       setDiscoveryError("");
+      setDidSearchGemini(false);
       setIsDiscovering(false);
       return;
     }
@@ -119,6 +121,7 @@ export function CaseStudyExplorer() {
     const controller = new AbortController();
     setIsDiscovering(true);
     setDiscoveryError("");
+    setDidSearchGemini(false);
 
     const timer = window.setTimeout(async () => {
       const timeout = window.setTimeout(() => {
@@ -141,15 +144,18 @@ export function CaseStudyExplorer() {
         }
 
         setDiscoveryResults(payload.results ?? []);
+        setDidSearchGemini(true);
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
           setDiscoveryError("Gemini search took too long. Please try again.");
           setDiscoveryResults([]);
+          setDidSearchGemini(true);
           return;
         }
 
         setDiscoveryError("Gemini discovery failed.");
         setDiscoveryResults([]);
+        setDidSearchGemini(true);
       } finally {
         window.clearTimeout(timeout);
         setIsDiscovering(false);
@@ -193,7 +199,9 @@ export function CaseStudyExplorer() {
               <p>
                 {isDiscovering
                   ? "Searching the web with Gemini. This can take a few seconds..."
-                  : "No reviewed local case studies yet."}
+                  : didSearchGemini && discoveryResults.length === 0 && !discoveryError
+                    ? "Gemini did not find source-backed results for this search."
+                    : "No reviewed local case studies yet."}
               </p>
               {discoveryError ? <p className="empty-note">{discoveryError}</p> : null}
               {hasActiveSearch ? (
