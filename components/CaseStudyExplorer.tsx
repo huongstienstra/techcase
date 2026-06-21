@@ -84,9 +84,13 @@ export function CaseStudyExplorer() {
   const [isDiscovering, setIsDiscovering] = useState(false);
   const hasActiveSearch = query.trim() !== "";
 
-  const filtered = useMemo(() => {
+  const localResults = useMemo(() => {
     const normalizedQuery = normalizeText(query.trim());
     const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
+
+    if (queryTokens.length > 0) {
+      return [];
+    }
 
     return caseStudies.filter((study) => {
       const searchable = normalizeText([
@@ -108,12 +112,13 @@ export function CaseStudyExplorer() {
     });
   }, [query]);
 
-  const featured = filtered[0] ?? caseStudies[0];
+  const shownCount = hasActiveSearch ? discoveryResults.length : localResults.length;
+  const featured = caseStudies[0];
 
   useEffect(() => {
     const trimmedQuery = query.trim();
 
-    if (!trimmedQuery || filtered.length > 0) {
+    if (!trimmedQuery) {
       setDiscoveryResults([]);
       setDiscoveryError("");
       setDidSearchGemini(false);
@@ -171,7 +176,7 @@ export function CaseStudyExplorer() {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [filtered.length, query]);
+  }, [query]);
 
   return (
     <section className="workspace" id="library" aria-label="Case study explorer">
@@ -182,7 +187,7 @@ export function CaseStudyExplorer() {
             <p className="section-window">Type a company, platform, technology, problem, or metric</p>
           </div>
           <p className="results-count">
-            {filtered.length} {filtered.length === 1 ? "case study" : "case studies"}
+            {isDiscovering ? "Searching..." : `${shownCount} ${shownCount === 1 ? "result" : "results"}`}
           </p>
         </div>
 
@@ -198,30 +203,46 @@ export function CaseStudyExplorer() {
           </label>
         </div>
 
-        {filtered.length === 0 ? (
+        {hasActiveSearch ? (
           <div className="discovery-block">
-            <div className="empty">
-              <p>
-                {isDiscovering
-                  ? "Searching the web with Gemini. This can take a few seconds..."
-                  : didSearchGemini && discoveryResults.length === 0 && !discoveryError
-                    ? "Gemini did not find source-backed results for this search."
-                    : "No reviewed local case studies yet."}
-              </p>
-              {discoveryError ? <p className="empty-note">{discoveryError}</p> : null}
-              {hasActiveSearch ? (
+            {isDiscovering ? (
+              <div className="search-progress" role="status">
+                <span className="spinner" aria-hidden="true" />
+                <span>Searching company tech blogs and web sources...</span>
+              </div>
+            ) : null}
+            {discoveryError ? (
+              <div className="search-progress is-error">
+                <span>{discoveryError}</span>
                 <button
-                  className="reset-button"
+                  className="inline-reset-button"
                   onClick={() => {
                     setQuery("");
                   }}
                   type="button"
                 >
-                  Clear search
+                  Clear
                 </button>
-              ) : null}
-            </div>
-            {discoveryResults.length > 0 ? (
+              </div>
+            ) : null}
+            {!isDiscovering &&
+            didSearchGemini &&
+            discoveryResults.length === 0 &&
+            !discoveryError ? (
+              <div className="search-progress">
+                <span>No company blog or web results found.</span>
+                <button
+                  className="inline-reset-button"
+                  onClick={() => {
+                    setQuery("");
+                  }}
+                  type="button"
+                >
+                  Clear
+                </button>
+              </div>
+            ) : null}
+            {discoveryResults.length > 0 && !isDiscovering ? (
               <div className="discovery-results" aria-label="Gemini discovered results">
                 <p className="discovery-label">
                   {discoverySource === "company-feed"
@@ -252,7 +273,7 @@ export function CaseStudyExplorer() {
           </div>
         ) : (
           <div className="cards">
-            {filtered.map((study) => (
+            {localResults.map((study) => (
               <Link className="case-card" href={`/case-studies/${study.slug}`} key={study.slug}>
                 <div className="case-duration">{study.qualityScore}/5</div>
                 <div className="case-thumb" aria-hidden="true">

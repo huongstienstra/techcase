@@ -55,7 +55,9 @@ type CompanySource = {
   aliases: string[];
   company: string;
   feedUrl: string;
+  pageUrl?: string;
   publisher: string;
+  type: "rss" | "uber-page";
 };
 
 type DiscoveryPayload = {
@@ -94,6 +96,15 @@ const COMPANY_SOURCES: CompanySource[] = [
     company: "Grab",
     feedUrl: "https://engineering.grab.com/feed.xml",
     publisher: "Grab Tech Blog",
+    type: "rss",
+  },
+  {
+    aliases: ["uber"],
+    company: "Uber",
+    feedUrl: "",
+    pageUrl: "https://eng.uber.com/",
+    publisher: "Uber Engineering",
+    type: "uber-page",
   },
 ];
 
@@ -276,6 +287,45 @@ function parseFeedItems(xml: string, source: CompanySource, query: string): Disc
     .slice(0, 5);
 }
 
+function parseUberPage(html: string, source: CompanySource, query: string): DiscoveryResult[] {
+  const terms = queryTermsWithoutCompany(query, source);
+  const cardMatches = [...html.matchAll(/<a class="blog-card"([\s\S]*?)<\/a>/g)];
+
+  return cardMatches
+    .map((match) => {
+      const card = match[0];
+      const href = card.match(/href="([^"]+)"/)?.[1] ?? "";
+      const title = stripHtml(card.match(/<h3 class="blog-card-title">([\s\S]*?)<\/h3>/)?.[1] ?? "");
+      const excerpt = stripHtml(
+        card.match(/<p class="blog-card-excerpt">([\s\S]*?)<\/p>/)?.[1] ?? "",
+      );
+      const date = match[1].match(/data-date="([^"]+)"/)?.[1] ?? "";
+      const category = stripHtml(
+        card.match(/<span class="blog-card-category"[^>]*>([\s\S]*?)<\/span>/)?.[1] ?? "",
+      );
+      const searchable = normalizeQuery(`${title} ${excerpt} ${category}`);
+
+      if (!title || !href || !href.startsWith("http")) {
+        return null;
+      }
+
+      if (terms.length > 0 && !terms.every((term) => searchable.includes(term))) {
+        return null;
+      }
+
+      return {
+        title,
+        company: source.company,
+        sourceUrl: href,
+        publisher: source.publisher,
+        summary: excerpt || `Recent ${source.company} engineering post.`,
+        reason: date ? `Published ${date}` : `Fetched from ${source.publisher}`,
+      };
+    })
+    .filter((item): item is DiscoveryResult => item !== null)
+    .slice(0, 5);
+}
+
 async function discoverFromCompanyFeed(query: string): Promise<DiscoveryResult[]> {
   const source = matchesCompanySource(query);
 
@@ -283,9 +333,13 @@ async function discoverFromCompanyFeed(query: string): Promise<DiscoveryResult[]
     return [];
   }
 
-  const response = await fetch(source.feedUrl, {
+  const response = await fetch(source.type === "rss" ? source.feedUrl : source.pageUrl ?? "", {
     headers: {
-      Accept: "application/rss+xml, application/xml, text/xml",
+      Accept:
+        source.type === "rss"
+          ? "application/rss+xml, application/xml, text/xml"
+          : "text/html,application/xhtml+xml",
+      "User-Agent": "TechCaseBot/1.0",
     },
     next: {
       revalidate: 60 * 60,
@@ -296,7 +350,8 @@ async function discoverFromCompanyFeed(query: string): Promise<DiscoveryResult[]
     return [];
   }
 
-  return parseFeedItems(await response.text(), source, query);
+  const text = await response.text();
+  return source.type === "rss" ? parseFeedItems(text, source, query) : parseUberPage(text, source, query);
 }
 
 function safeHostname(sourceUrl: string): string {

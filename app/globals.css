@@ -591,6 +591,53 @@ select {
   gap: 12px;
 }
 
+.search-progress {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  color: rgba(255, 255, 255, 0.72);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  min-height: 58px;
+  padding: 0 18px;
+}
+
+.search-progress.is-error {
+  border-color: rgba(198, 165, 106, 0.38);
+}
+
+.spinner {
+  animation: spin 900ms linear infinite;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  border-top-color: rgba(255, 255, 255, 0.88);
+  border-radius: 999px;
+  flex: 0 0 auto;
+  height: 18px;
+  width: 18px;
+}
+
+.inline-reset-button {
+  background: rgba(255, 255, 255, 0.86);
+  border: 0;
+  border-radius: 999px;
+  color: #171716;
+  cursor: pointer;
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 900;
+  min-height: 30px;
+  padding: 0 12px;
+  text-transform: uppercase;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .discovery-label {
   color: rgba(255, 255, 255, 0.68);
   font-size: 12px;
