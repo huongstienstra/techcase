@@ -5,16 +5,6 @@ import Link from "next/link";
 import { allCompanies, caseStudies } from "@/lib/caseStudies";
 import { ArrowUpRight, Search } from "lucide-react";
 
-type DiscoveryResult = {
-  title: string;
-  company: string;
-  sourceUrl: string;
-  publisher: string;
-  summary: string;
-  reason: string;
-};
-
-const DISCOVERY_TIMEOUT_MS = 1000 * 24;
 const PAGE_SIZE = 8;
 const FEATURE_ROTATION_MS = 1000 * 10;
 
@@ -91,20 +81,10 @@ export function CaseStudyExplorer() {
   const [query, setQuery] = useState("");
   const [selectedCompany, setSelectedCompany] = useState("");
   const [page, setPage] = useState(1);
-  const [aiResults, setAiResults] = useState<DiscoveryResult[]>([]);
-  const [aiError, setAiError] = useState("");
-  const [didSearchAi, setDidSearchAi] = useState(false);
-  const [isDiscovering, setIsDiscovering] = useState(false);
   const [featured, setFeatured] = useState(caseStudies[0]);
   const hasActiveSearch = query.trim() !== "" || selectedCompany !== "";
   const normalizedQuery = normalizeText(query.trim());
   const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
-  const queryMatchesKnownCompany = allCompanies.some((company) => {
-    const normalizedCompany = normalizeText(company);
-    const companyWords = searchableWords(company);
-
-    return queryTokens.some((token) => tokenMatches(token, normalizedCompany, companyWords));
-  });
 
   const localResults = useMemo(() => {
     return caseStudies.filter((study) => {
@@ -131,12 +111,7 @@ export function CaseStudyExplorer() {
     });
   }, [queryTokens, selectedCompany]);
 
-  const shouldDiscoverWithAi =
-    query.trim().length >= 3 &&
-    selectedCompany === "" &&
-    localResults.length === 0 &&
-    !queryMatchesKnownCompany;
-  const shownCount = shouldDiscoverWithAi ? aiResults.length : localResults.length;
+  const shownCount = localResults.length;
   const pageCount = Math.max(1, Math.ceil(localResults.length / PAGE_SIZE));
   const pageStart = (page - 1) * PAGE_SIZE;
   const pagedLocalResults = localResults.slice(pageStart, pageStart + PAGE_SIZE);
@@ -163,68 +138,6 @@ export function CaseStudyExplorer() {
     }
   }, [page, pageCount]);
 
-  useEffect(() => {
-    const trimmedQuery = query.trim();
-
-    if (!shouldDiscoverWithAi) {
-      setAiResults([]);
-      setAiError("");
-      setDidSearchAi(false);
-      setIsDiscovering(false);
-      return;
-    }
-
-    const controller = new AbortController();
-    setAiResults([]);
-    setAiError("");
-    setDidSearchAi(false);
-    setIsDiscovering(true);
-
-    const timer = window.setTimeout(async () => {
-      const timeout = window.setTimeout(() => {
-        controller.abort();
-      }, DISCOVERY_TIMEOUT_MS);
-
-      try {
-        const response = await fetch(`/api/discover?q=${encodeURIComponent(`${trimmedQuery} Android app case study`)}`, {
-          signal: controller.signal,
-        });
-        const payload = (await response.json()) as {
-          error?: string;
-          results?: DiscoveryResult[];
-        };
-
-        if (!response.ok) {
-          setAiError(payload.error ?? "Expanded search failed.");
-          setAiResults([]);
-          return;
-        }
-
-        setAiResults(payload.results ?? []);
-        setDidSearchAi(true);
-      } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") {
-          setAiError("Expanded search took too long. Please try again.");
-          setAiResults([]);
-          setDidSearchAi(true);
-          return;
-        }
-
-        setAiError("Expanded search failed.");
-        setAiResults([]);
-        setDidSearchAi(true);
-      } finally {
-        window.clearTimeout(timeout);
-        setIsDiscovering(false);
-      }
-    }, 650);
-
-    return () => {
-      controller.abort();
-      window.clearTimeout(timer);
-    };
-  }, [query, shouldDiscoverWithAi]);
-
   return (
     <section className="workspace" id="library" aria-label="Case study explorer">
       <div className="library-column">
@@ -234,7 +147,7 @@ export function CaseStudyExplorer() {
             <p className="section-window">Type a company, platform, technology, problem, or metric</p>
           </div>
           <p className="results-count">
-            {isDiscovering ? "Searching..." : `${shownCount} ${shownCount === 1 ? "result" : "results"}`}
+            {shownCount} {shownCount === 1 ? "result" : "results"}
           </p>
         </div>
 
@@ -318,48 +231,6 @@ export function CaseStudyExplorer() {
               </nav>
             ) : null}
           </>
-        ) : shouldDiscoverWithAi ? (
-          <div className="discovery-block">
-            {isDiscovering ? (
-              <div className="search-progress" role="status">
-                <span className="spinner" aria-hidden="true" />
-                <span>Searching Android app story sources...</span>
-              </div>
-            ) : null}
-            {aiError ? (
-              <div className="search-progress is-error">
-                <span>{aiError}</span>
-              </div>
-            ) : null}
-            {!isDiscovering && didSearchAi && aiResults.length === 0 && !aiError ? (
-              <div className="search-progress">
-                <span>No Android app story sources found.</span>
-              </div>
-            ) : null}
-            {aiResults.length > 0 && !isDiscovering ? (
-              <div className="discovery-results" aria-label="Suggested Android app stories">
-                {aiResults.map((result) => (
-                  <a
-                    className="discovery-card"
-                    href={result.sourceUrl}
-                    key={result.sourceUrl}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    <div>
-                      <div className="case-meta">
-                        <span>{result.company || "Unknown company"}</span>
-                        <span>{result.publisher || "Web source"}</span>
-                      </div>
-                      <h2 className="case-title">{result.title}</h2>
-                      <p className="case-summary">{result.summary || result.reason}</p>
-                    </div>
-                    <ArrowUpRight className="case-arrow" size={19} />
-                  </a>
-                ))}
-              </div>
-            ) : null}
-          </div>
         ) : (
           <div className="empty">
             <p>No Android app stories found for "{query.trim()}".</p>
