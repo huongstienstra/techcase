@@ -106,6 +106,13 @@ const COMPANY_SOURCES: CompanySource[] = [
     publisher: "Uber Engineering",
     type: "uber-page",
   },
+  {
+    aliases: ["netflix"],
+    company: "Netflix",
+    feedUrl: "https://medium.com/feed/netflix-techblog",
+    publisher: "Netflix TechBlog",
+    type: "rss",
+  },
 ];
 
 function getClientId(request: Request): string {
@@ -240,6 +247,19 @@ function stripHtml(value: string): string {
     .trim();
 }
 
+function truncateText(value: string, maxLength: number): string {
+  const normalized = value.replace(/\s+/g, " ").trim();
+
+  if (normalized.length <= maxLength) {
+    return normalized;
+  }
+
+  const truncated = normalized.slice(0, maxLength);
+  const lastSpace = truncated.lastIndexOf(" ");
+
+  return `${truncated.slice(0, lastSpace > 80 ? lastSpace : maxLength).trim()}...`;
+}
+
 function normalizeQuery(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
 }
@@ -269,7 +289,9 @@ function parseFeedItems(xml: string, source: CompanySource, query: string): Disc
       const title = stripHtml(item.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? "");
       const link = stripHtml(item.match(/<link>([\s\S]*?)<\/link>/)?.[1] ?? "");
       const description = stripHtml(
-        item.match(/<description>([\s\S]*?)<\/description>/)?.[1] ?? "",
+        item.match(/<description>([\s\S]*?)<\/description>/)?.[1] ??
+          item.match(/<content:encoded>([\s\S]*?)<\/content:encoded>/)?.[1] ??
+          "",
       );
       const pubDate = stripHtml(item.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] ?? "");
       const searchable = normalizeQuery(`${title} ${description}`);
@@ -287,7 +309,7 @@ function parseFeedItems(xml: string, source: CompanySource, query: string): Disc
         company: source.company,
         sourceUrl: link,
         publisher: source.publisher,
-        summary: description.slice(0, 220) || `Recent ${source.company} engineering post.`,
+        summary: truncateText(description, 220) || `Recent ${source.company} engineering post.`,
         reason: pubDate ? `Published ${pubDate}` : `Fetched from ${source.publisher}`,
       };
     })
@@ -326,7 +348,7 @@ function parseUberPage(html: string, source: CompanySource, query: string): Disc
         company: source.company,
         sourceUrl: href,
         publisher: source.publisher,
-        summary: excerpt || `Recent ${source.company} engineering post.`,
+        summary: truncateText(excerpt, 220) || `Recent ${source.company} engineering post.`,
         reason: date ? `Published ${date}` : `Fetched from ${source.publisher}`,
       };
     })
