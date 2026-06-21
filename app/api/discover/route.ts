@@ -190,14 +190,22 @@ function normalizeResults(value: unknown): DiscoveryResult[] {
       }
 
       const record = item as Record<string, unknown>;
-      const title = typeof record.title === "string" ? record.title.trim() : "";
+      const rawTitle = typeof record.title === "string" ? record.title.trim() : "";
       const company = typeof record.company === "string" ? record.company.trim() : "";
       const sourceUrl = typeof record.sourceUrl === "string" ? record.sourceUrl.trim() : "";
-      const publisher = typeof record.publisher === "string" ? record.publisher.trim() : "";
+      const publisher =
+        typeof record.publisher === "string" ? record.publisher.trim() : safeHostname(sourceUrl);
       const summary = typeof record.summary === "string" ? record.summary.trim() : "";
-      const reason = typeof record.reason === "string" ? record.reason.trim() : "";
+      const reason =
+        typeof record.reason === "string" ? record.reason.trim() : "Matched from web search.";
 
-      if (!title || !sourceUrl || !sourceUrl.startsWith("http")) {
+      if (!sourceUrl || !sourceUrl.startsWith("http")) {
+        return null;
+      }
+
+      const title = cleanDiscoveryTitle(rawTitle, sourceUrl);
+
+      if (!title) {
         return null;
       }
 
@@ -206,7 +214,7 @@ function normalizeResults(value: unknown): DiscoveryResult[] {
         company,
         sourceUrl,
         publisher,
-        summary,
+        summary: summary || fallbackSummary(title, sourceUrl),
         reason,
       };
     })
@@ -362,6 +370,106 @@ function safeHostname(sourceUrl: string): string {
   }
 }
 
+function titleLooksLikeHostname(title: string, sourceUrl: string): boolean {
+  const hostname = safeHostname(sourceUrl).toLowerCase();
+  const normalizedTitle = title
+    .toLowerCase()
+    .replace(/^www\./, "")
+    .replace(/^https?:\/\//, "")
+    .replace(/\/$/, "");
+
+  if (!hostname || !normalizedTitle) {
+    return false;
+  }
+
+  const hostnameParts = hostname.split(".");
+  const rootDomain = hostnameParts.slice(-2).join(".");
+
+  return (
+    normalizedTitle === hostname ||
+    normalizedTitle === hostname.replace(/\.[^.]+$/, "") ||
+    normalizedTitle === rootDomain ||
+    normalizedTitle.endsWith(`.${rootDomain}`)
+  );
+}
+
+function titleFromUrlPath(sourceUrl: string): string {
+  try {
+    const url = new URL(sourceUrl);
+    const segments = url.pathname
+      .split("/")
+      .map((segment) => segment.trim())
+      .filter(Boolean);
+    const lastUsefulSegment = [...segments]
+      .reverse()
+      .find((segment) => !/^\d{4}$/.test(segment) && segment.length > 2);
+
+    if (!lastUsefulSegment) {
+      return safeHostname(sourceUrl);
+    }
+
+    return decodeURIComponent(lastUsefulSegment)
+      .replace(/\.(html?|aspx?|php)$/i, "")
+      .replace(/[-_+]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
+  } catch {
+    return "";
+  }
+}
+
+function cleanDiscoveryTitle(title: string, sourceUrl: string): string {
+  const cleaned = title
+    .replace(/\s*[|-]\s*(?:SAP Community|Google Blog|Medium|Substack)$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!cleaned || titleLooksLikeHostname(cleaned, sourceUrl)) {
+    return titleFromUrlPath(sourceUrl);
+  }
+
+  return cleaned;
+}
+
+function fallbackSummary(title: string, sourceUrl: string): string {
+  const publisher = safeHostname(sourceUrl);
+  return publisher
+    ? `Source from ${publisher} for "${title}". Open it to review the Android case-study details.`
+    : `Open the source to review the Android case-study details for "${title}".`;
+}
+
+function resultKey(sourceUrl: string): string {
+  try {
+    const url = new URL(sourceUrl);
+    url.hash = "";
+    url.search = "";
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return sourceUrl;
+  }
+}
+
+function mergeDiscoveryResults(
+  primaryResults: DiscoveryResult[],
+  fallbackResults: DiscoveryResult[],
+): DiscoveryResult[] {
+  const seen = new Set<string>();
+
+  return [...primaryResults, ...fallbackResults]
+    .filter((result) => {
+      const key = resultKey(result.sourceUrl);
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 5);
+}
+
 function isLikelyUsefulSource(title: string, sourceUrl: string): boolean {
   let url: URL;
 
@@ -410,7 +518,6 @@ function resultsFromCitations(
     title: string;
     uri: string;
   }>,
-  query: string,
 ): Promise<DiscoveryResult[]> {
   return Promise.all(
     citations.map(async (citation) => ({
@@ -421,14 +528,18 @@ function resultsFromCitations(
     resolved
       .filter((citation) => isLikelyUsefulSource(citation.title, citation.resolvedUrl))
       .slice(0, 5)
-      .map((citation) => ({
-        title: citation.title,
-        company: "",
-        sourceUrl: citation.resolvedUrl,
-        publisher: safeHostname(citation.resolvedUrl),
-        summary: `Potential technical source discovered for "${query}". Open the article to review and save it as a curated case study.`,
-        reason: "Generated from web discovery citation metadata.",
-      })),
+      .map((citation) => {
+        const title = cleanDiscoveryTitle(citation.title, citation.resolvedUrl);
+
+        return {
+          title,
+          company: "",
+          sourceUrl: citation.resolvedUrl,
+          publisher: safeHostname(citation.resolvedUrl),
+          summary: fallbackSummary(title, citation.resolvedUrl),
+          reason: "Generated from web discovery citation metadata.",
+        };
+      }),
   );
 }
 
@@ -510,7 +621,16 @@ export async function GET(request: Request) {
 Search for official Android Developers app stories, company Android engineering posts, official mobile engineering case studies, and credible technical publications about Android app performance, architecture, app quality, Compose, Kotlin, CameraX, startup, ANRs, crashes, rendering, Play Console, or Android vitals.
 Prefer URLs whose path includes developer, android, stories, apps, case-study, engineering, mobile, architecture, performance, compose, kotlin, camerax, startup, vitals, or app-quality.
 Avoid company homepages, product landing pages, docs homepages, generic tutorials, SEO listicles, job posts, newsletters, and unrelated marketing pages.
-Return a short list of the best matching sources with one sentence each.`,
+Return only a JSON array of up to 5 objects. Do not wrap it in markdown.
+Each object must use this exact shape:
+{
+  "title": "real article or case-study title, never just the domain",
+  "company": "company the source is about, or empty string if unclear",
+  "sourceUrl": "canonical source URL",
+  "publisher": "publication or engineering blog name",
+  "summary": "one specific sentence describing what the source says, not generic instructions",
+  "reason": "short reason this source matches the Android case-study search"
+}`,
         config: {
           tools: [{ googleSearch: {} }],
         },
@@ -526,10 +646,10 @@ Return a short list of the best matching sources with one sentence each.`,
       }))
       .filter((chunk) => chunk.title && chunk.uri)
       .slice(0, 8);
-    const citationResults = await resultsFromCitations(citations, query);
+    const citationResults = await resultsFromCitations(citations);
     const parsed = tryExtractJson(response.text ?? "[]");
     const normalizedResults = normalizeResults(parsed);
-    const results = citationResults.length > 0 ? citationResults : normalizedResults;
+    const results = mergeDiscoveryResults(normalizedResults, citationResults);
 
     const payload = { results, citations, source: "gemini" as const };
 

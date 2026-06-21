@@ -9,9 +9,6 @@ export default function Home() {
             <a className="wordmark" href="/">
               Android Developers
             </a>
-            <a className="source-toggle" href="https://developer.android.com/stories/apps">
-              Source hub
-            </a>
           </header>
 
           <section className="intro">

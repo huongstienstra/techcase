@@ -65,9 +65,7 @@ select {
   align-items: center;
   background: var(--surface);
   border-bottom: 1px solid var(--line);
-  display: grid;
-  gap: 24px;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
   min-height: 64px;
   padding: 0 40px;
   position: sticky;
@@ -81,7 +79,6 @@ select {
   font-weight: 500;
 }
 
-.source-toggle,
 .link-button {
   align-items: center;
   background: var(--accent);
@@ -96,7 +93,6 @@ select {
   padding: 0 18px;
 }
 
-.source-toggle:hover,
 .link-button:hover {
   background: var(--accent-dark);
   border-color: var(--accent-dark);
@@ -760,10 +756,6 @@ select {
 }
 
 @media (max-width: 640px) {
-  .source-toggle {
-    display: none;
-  }
-
   .results-head {
     align-items: start;
     flex-direction: column;
