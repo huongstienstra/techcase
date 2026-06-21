@@ -18,10 +18,6 @@ export default function Home() {
             <div>
               <p className="eyebrow">Training / Android app case studies</p>
               <h1>Find Android app stories by company, problem, and outcome.</h1>
-              <p className="intro-copy">
-                Browse source-backed stories from Android Developers, with expanded web discovery for
-                companies that are not in the catalog yet.
-              </p>
             </div>
           </section>
 
