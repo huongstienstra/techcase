@@ -14,7 +14,7 @@ type DiscoveryResult = {
   reason: string;
 };
 
-const DISCOVERY_TIMEOUT_MS = 1000 * 16;
+const DISCOVERY_TIMEOUT_MS = 1000 * 24;
 
 function normalizeText(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9\s]/g, " ");

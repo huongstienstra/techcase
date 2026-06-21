@@ -2,13 +2,14 @@ import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
-export const maxDuration = 10;
+export const maxDuration = 25;
 
 const CACHE_TTL_MS = 1000 * 60 * 60 * 6;
 const RATE_LIMIT_WINDOW_MS = 1000 * 60;
 const RATE_LIMIT_MAX_REQUESTS = 8;
 const MAX_QUERY_LENGTH = 120;
-const GEMINI_TIMEOUT_MS = 1000 * 8;
+const GEMINI_TIMEOUT_MS = 1000 * 20;
+const GEMINI_MODEL = process.env.GEMINI_MODEL ?? "gemini-2.5-flash-lite";
 
 type DiscoveryResult = {
   title: string;
@@ -227,21 +228,12 @@ export async function GET(request: Request) {
   try {
     const response = await withTimeout(
       ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: `Find technical case-study articles for this search: "${query}".
+        model: GEMINI_MODEL,
+        contents: `Find source-backed technical case-study articles for: "${query}".
 
-Return only articles from company engineering blogs, official developer stories, vendor case studies, or credible technical publications.
+Search for articles from company engineering blogs, official developer stories, vendor case studies, and credible technical publications.
 Prefer big-company case stories. Avoid generic tutorials, SEO listicles, job posts, and unrelated marketing pages.
-
-Return JSON only. The response must be an array of 1 to 5 objects with:
-- title
-- company
-- sourceUrl
-- publisher
-- summary
-- reason
-
-The sourceUrl must be the original article URL.`,
+Return a short list of the best matching sources with one sentence each.`,
         config: {
           tools: [{ googleSearch: {} }],
         },
@@ -257,10 +249,10 @@ The sourceUrl must be the original article URL.`,
       }))
       .filter((chunk) => chunk.title && chunk.uri)
       .slice(0, 8);
+    const citationResults = resultsFromCitations(citations, query);
     const parsed = tryExtractJson(response.text ?? "[]");
     const normalizedResults = normalizeResults(parsed);
-    const results =
-      normalizedResults.length > 0 ? normalizedResults : resultsFromCitations(citations, query);
+    const results = citationResults.length > 0 ? citationResults : normalizedResults;
 
     const payload = { results, citations };
 
