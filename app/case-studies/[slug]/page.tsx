@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: PageProps) {
   const study = caseStudies.find((item) => item.slug === slug);
 
   return {
-    title: study ? `${study.title} | Tech Cases` : "Case Study | Tech Cases",
+    title: study ? `${study.title} | Android App Case Studies` : "Case Study | Android App Case Studies",
   };
 }
 
@@ -36,10 +36,10 @@ export default async function CaseStudyPage({ params }: PageProps) {
       <header className="topbar">
         <div className="topbar-inner">
           <Link className="brand" href="/">
-            <span className="brand-mark">TC</span>
+            <span className="brand-mark">AC</span>
             <span>
-              <span className="brand-title">Tech Cases</span>
-              <span className="brand-subtitle">Structured engineering stories</span>
+              <span className="brand-title">Android Cases</span>
+              <span className="brand-subtitle">Structured app engineering stories</span>
             </span>
           </Link>
           <nav className="nav-actions" aria-label="Primary">

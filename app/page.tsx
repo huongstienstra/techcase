@@ -9,7 +9,7 @@ export default function Home() {
       <main className="app-frame">
         <aside className="side-rail" aria-label="Primary sections">
           <a className="rail-brand" href="/" aria-label="Tech Cases home">
-            tc
+            ac
           </a>
           <nav className="rail-nav">
             <a className="rail-button is-active" href="/" aria-label="Home">
@@ -33,17 +33,17 @@ export default function Home() {
         <section className="dashboard-shell">
           <header className="dashboard-top">
             <a className="wordmark" href="/">
-              techcase
+              androidcases
             </a>
             <nav className="date-strip" aria-label="Browse modes">
-              <span>Scale</span>
-              <span>Mobile</span>
-              <span>AI</span>
+              <span>Startup</span>
+              <span>Vitals</span>
+              <span>Compose</span>
               <strong>Today</strong>
-              <span>Infra</span>
-              <span>Data</span>
+              <span>CameraX</span>
+              <span>Kotlin</span>
             </nav>
-            <a className="source-toggle" href="https://developer.android.com/stories/apps/tiktok">
+            <a className="source-toggle" href="https://developer.android.com/stories/apps">
               <CalendarDays size={18} />
               Sources
             </a>
@@ -51,8 +51,8 @@ export default function Home() {
 
           <section className="intro">
             <div>
-              <p className="eyebrow">Curated technical case stories</p>
-              <h1>Search by problem, stack, and outcome.</h1>
+              <p className="eyebrow">Curated Android app stories</p>
+              <h1>Search Android app case studies by company, problem, and outcome.</h1>
             </div>
           </section>
 

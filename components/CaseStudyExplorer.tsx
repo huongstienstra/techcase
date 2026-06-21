@@ -1,22 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { caseStudies } from "@/lib/caseStudies";
 import { ArrowUpRight, Search } from "lucide-react";
-
-type DiscoveryResult = {
-  title: string;
-  company: string;
-  sourceUrl: string;
-  publisher: string;
-  summary: string;
-  reason: string;
-};
-
-type DiscoverySource = "company-feed" | "gemini";
-
-const DISCOVERY_TIMEOUT_MS = 1000 * 24;
 
 function normalizeText(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9\s]/g, " ");
@@ -63,11 +50,11 @@ function tokenMatches(token: string, fullText: string, words: string[]): boolean
   }
 
   return words.some((word) => {
-    if (word.includes(token) || token.includes(word)) {
+    if (word.includes(token) || (word.length >= 5 && token.includes(word))) {
       return true;
     }
 
-    if (Math.abs(word.length - token.length) > 2) {
+    if (word[0] !== token[0] || Math.abs(word.length - token.length) > 2) {
       return false;
     }
 
@@ -77,20 +64,11 @@ function tokenMatches(token: string, fullText: string, words: string[]): boolean
 
 export function CaseStudyExplorer() {
   const [query, setQuery] = useState("");
-  const [discoveryResults, setDiscoveryResults] = useState<DiscoveryResult[]>([]);
-  const [discoveryError, setDiscoveryError] = useState("");
-  const [discoverySource, setDiscoverySource] = useState<DiscoverySource>("gemini");
-  const [didSearchGemini, setDidSearchGemini] = useState(false);
-  const [isDiscovering, setIsDiscovering] = useState(false);
   const hasActiveSearch = query.trim() !== "";
 
   const localResults = useMemo(() => {
     const normalizedQuery = normalizeText(query.trim());
     const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
-
-    if (queryTokens.length > 0) {
-      return [];
-    }
 
     return caseStudies.filter((study) => {
       const searchable = normalizeText([
@@ -112,71 +90,8 @@ export function CaseStudyExplorer() {
     });
   }, [query]);
 
-  const shownCount = hasActiveSearch ? discoveryResults.length : localResults.length;
+  const shownCount = localResults.length;
   const featured = caseStudies[0];
-
-  useEffect(() => {
-    const trimmedQuery = query.trim();
-
-    if (!trimmedQuery) {
-      setDiscoveryResults([]);
-      setDiscoveryError("");
-      setDidSearchGemini(false);
-      setIsDiscovering(false);
-      return;
-    }
-
-    const controller = new AbortController();
-    setIsDiscovering(true);
-    setDiscoveryError("");
-    setDidSearchGemini(false);
-
-    const timer = window.setTimeout(async () => {
-      const timeout = window.setTimeout(() => {
-        controller.abort();
-      }, DISCOVERY_TIMEOUT_MS);
-
-      try {
-        const response = await fetch(`/api/discover?q=${encodeURIComponent(trimmedQuery)}`, {
-          signal: controller.signal,
-        });
-        const payload = (await response.json()) as {
-          error?: string;
-          results?: DiscoveryResult[];
-          source?: DiscoverySource;
-        };
-
-        if (!response.ok) {
-          setDiscoveryError(payload.error ?? "Gemini discovery failed.");
-          setDiscoveryResults([]);
-          return;
-        }
-
-        setDiscoveryResults(payload.results ?? []);
-        setDiscoverySource(payload.source ?? "gemini");
-        setDidSearchGemini(true);
-      } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") {
-          setDiscoveryError("Gemini search took too long. Please try again.");
-          setDiscoveryResults([]);
-          setDidSearchGemini(true);
-          return;
-        }
-
-        setDiscoveryError("Gemini discovery failed.");
-        setDiscoveryResults([]);
-        setDidSearchGemini(true);
-      } finally {
-        window.clearTimeout(timeout);
-        setIsDiscovering(false);
-      }
-    }, 650);
-
-    return () => {
-      controller.abort();
-      window.clearTimeout(timer);
-    };
-  }, [query]);
 
   return (
     <section className="workspace" id="library" aria-label="Case study explorer">
@@ -187,7 +102,7 @@ export function CaseStudyExplorer() {
             <p className="section-window">Type a company, platform, technology, problem, or metric</p>
           </div>
           <p className="results-count">
-            {isDiscovering ? "Searching..." : `${shownCount} ${shownCount === 1 ? "result" : "results"}`}
+            {shownCount} {shownCount === 1 ? "result" : "results"}
           </p>
         </div>
 
@@ -197,81 +112,13 @@ export function CaseStudyExplorer() {
             <input
               id="search"
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search for iOS image loading, Android startup, Kafka reliability..."
+              placeholder="Search Lyft startup, TikTok jank, Monzo CameraX..."
               value={query}
             />
           </label>
         </div>
 
-        {hasActiveSearch ? (
-          <div className="discovery-block">
-            {isDiscovering ? (
-              <div className="search-progress" role="status">
-                <span className="spinner" aria-hidden="true" />
-                <span>Searching company tech blogs and web sources...</span>
-              </div>
-            ) : null}
-            {discoveryError ? (
-              <div className="search-progress is-error">
-                <span>{discoveryError}</span>
-                <button
-                  className="inline-reset-button"
-                  onClick={() => {
-                    setQuery("");
-                  }}
-                  type="button"
-                >
-                  Clear
-                </button>
-              </div>
-            ) : null}
-            {!isDiscovering &&
-            didSearchGemini &&
-            discoveryResults.length === 0 &&
-            !discoveryError ? (
-              <div className="search-progress">
-                <span>No company blog or web results found.</span>
-                <button
-                  className="inline-reset-button"
-                  onClick={() => {
-                    setQuery("");
-                  }}
-                  type="button"
-                >
-                  Clear
-                </button>
-              </div>
-            ) : null}
-            {discoveryResults.length > 0 && !isDiscovering ? (
-              <div className="discovery-results" aria-label="Gemini discovered results">
-                <p className="discovery-label">
-                  {discoverySource === "company-feed"
-                    ? "Latest from company tech blog"
-                    : "Discovered by Gemini Search"}
-                </p>
-                {discoveryResults.map((result) => (
-                  <a
-                    className="discovery-card"
-                    href={result.sourceUrl}
-                    key={result.sourceUrl}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    <div>
-                      <div className="case-meta">
-                        <span>{result.company || "Unknown company"}</span>
-                        <span>{result.publisher || "Web source"}</span>
-                      </div>
-                      <h2 className="case-title">{result.title}</h2>
-                      <p className="case-summary">{result.summary || result.reason}</p>
-                    </div>
-                    <ArrowUpRight className="case-arrow" size={19} />
-                  </a>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        ) : (
+        {localResults.length > 0 ? (
           <div className="cards">
             {localResults.map((study) => (
               <Link className="case-card" href={`/case-studies/${study.slug}`} key={study.slug}>
@@ -298,6 +145,19 @@ export function CaseStudyExplorer() {
                 <ArrowUpRight className="case-arrow" size={19} />
               </Link>
             ))}
+          </div>
+        ) : (
+          <div className="empty">
+            <p>No Android app stories found for "{query.trim()}".</p>
+            <p className="empty-note">
+              Try a company or Android topic like Lyft, startup, CameraX, Compose, Kotlin, app quality,
+              or video playback.
+            </p>
+            {hasActiveSearch ? (
+              <button className="reset-button" onClick={() => setQuery("")} type="button">
+                Clear search
+              </button>
+            ) : null}
           </div>
         )}
       </div>
