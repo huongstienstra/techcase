@@ -288,6 +288,8 @@ select {
   background: rgba(255, 255, 255, 0.075);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 24px;
+  display: grid;
+  gap: 12px;
   margin-bottom: 18px;
   padding: 18px;
 }
@@ -323,6 +325,48 @@ select {
 
 .search-field input::placeholder {
   color: rgba(255, 255, 255, 0.38);
+}
+
+.select-field {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-height: 54px;
+  padding: 0 16px;
+}
+
+.select-field span {
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.select-field select {
+  appearance: none;
+  background:
+    linear-gradient(45deg, transparent 50%, rgba(255, 255, 255, 0.72) 50%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.72) 50%, transparent 50%);
+  background-position:
+    calc(100% - 10px) 50%,
+    calc(100% - 4px) 50%;
+  background-repeat: no-repeat;
+  background-size:
+    6px 6px,
+    6px 6px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 850;
+  padding-right: 26px;
+}
+
+.select-field option {
+  background: #1b1b19;
+  color: var(--ink);
 }
 
 .cards {

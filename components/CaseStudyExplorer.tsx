@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { caseStudies } from "@/lib/caseStudies";
+import { allCompanies, caseStudies } from "@/lib/caseStudies";
 import { ArrowUpRight, Search } from "lucide-react";
 
 function normalizeText(value: string): string {
@@ -64,13 +64,18 @@ function tokenMatches(token: string, fullText: string, words: string[]): boolean
 
 export function CaseStudyExplorer() {
   const [query, setQuery] = useState("");
-  const hasActiveSearch = query.trim() !== "";
+  const [selectedCompany, setSelectedCompany] = useState("");
+  const hasActiveSearch = query.trim() !== "" || selectedCompany !== "";
 
   const localResults = useMemo(() => {
     const normalizedQuery = normalizeText(query.trim());
     const queryTokens = normalizedQuery.split(/\s+/).filter(Boolean);
 
     return caseStudies.filter((study) => {
+      if (selectedCompany && study.company !== selectedCompany) {
+        return false;
+      }
+
       const searchable = normalizeText([
         study.title,
         study.company,
@@ -88,7 +93,7 @@ export function CaseStudyExplorer() {
         queryTokens.every((token) => tokenMatches(token, searchable, words));
       return matchesQuery;
     });
-  }, [query]);
+  }, [query, selectedCompany]);
 
   const shownCount = localResults.length;
   const featured = caseStudies[0];
@@ -115,6 +120,21 @@ export function CaseStudyExplorer() {
               placeholder="Search Lyft startup, TikTok jank, Monzo CameraX..."
               value={query}
             />
+          </label>
+          <label className="select-field" htmlFor="company-filter">
+            <span>Company</span>
+            <select
+              id="company-filter"
+              onChange={(event) => setSelectedCompany(event.target.value)}
+              value={selectedCompany}
+            >
+              <option value="">All companies</option>
+              {allCompanies.map((company) => (
+                <option key={company} value={company}>
+                  {company}
+                </option>
+              ))}
+            </select>
           </label>
         </div>
 
@@ -154,7 +174,14 @@ export function CaseStudyExplorer() {
               or video playback.
             </p>
             {hasActiveSearch ? (
-              <button className="reset-button" onClick={() => setQuery("")} type="button">
+              <button
+                className="reset-button"
+                onClick={() => {
+                  setQuery("");
+                  setSelectedCompany("");
+                }}
+                type="button"
+              >
                 Clear search
               </button>
             ) : null}

@@ -10,7 +10,7 @@ export type CaseStudy = {
   publisher: string;
   publisherType: "Developer Platform" | "Engineering Blog" | "Vendor Case Study" | "Postmortem";
   sourceUrl: string;
-  year: number;
+  year: number | "Source";
   domain: string;
   problemAreas: string[];
   technologies: string[];
@@ -22,7 +22,7 @@ export type CaseStudy = {
   qualityScore: number;
 };
 
-export const caseStudies: CaseStudy[] = [
+const curatedCaseStudies: CaseStudy[] = [
   {
     slug: "lyft-android-startup",
     title: "Lyft Improves Android App Startup Time for Drivers by 21%",
@@ -315,6 +315,405 @@ export const caseStudies: CaseStudy[] = [
     qualityScore: 3,
   },
 ];
+
+type AndroidStorySource = {
+  slug: string;
+  label: string;
+  company: string;
+  sourceUrl: string;
+};
+
+const androidStorySources: AndroidStorySource[] = [
+  {
+    slug: "xiaohongshu",
+    label: "Xiaohongshu",
+    company: "Xiaohongshu",
+    sourceUrl: "https://developer.android.com/stories/apps/xiaohongshu",
+  },
+  {
+    slug: "cuvva-compose",
+    label: "Cuvva - Compose",
+    company: "Cuvva",
+    sourceUrl: "https://developer.android.com/stories/apps/cuvva-compose",
+  },
+  {
+    slug: "square-compose",
+    label: "Square - Compose",
+    company: "Square",
+    sourceUrl: "https://developer.android.com/stories/apps/square-compose",
+  },
+  {
+    slug: "vlc-android-tv",
+    label: "VLC - Android TV",
+    company: "VLC",
+    sourceUrl: "https://developer.android.com/stories/apps/vlc-android-tv",
+  },
+  {
+    slug: "djay2",
+    label: "Djay2",
+    company: "Djay2",
+    sourceUrl: "https://developer.android.com/stories/apps/djay2",
+  },
+  {
+    slug: "vlc",
+    label: "VLC",
+    company: "VLC",
+    sourceUrl: "https://developer.android.com/stories/apps/vlc",
+  },
+  {
+    slug: "concepts",
+    label: "Concepts",
+    company: "Concepts",
+    sourceUrl: "https://developer.android.com/stories/apps/concepts",
+  },
+  {
+    slug: "duolingo-excellence",
+    label: "Duolingo - Excellence",
+    company: "Duolingo",
+    sourceUrl: "https://developer.android.com/stories/apps/duolingo-excellence",
+  },
+  {
+    slug: "duolingo-kotlin",
+    label: "Duolingo - Kotlin",
+    company: "Duolingo",
+    sourceUrl: "https://developer.android.com/stories/apps/duolingo-kotlin",
+  },
+  {
+    slug: "google-home",
+    label: "Google Home",
+    company: "Google Home",
+    sourceUrl: "https://developer.android.com/stories/apps/google-home",
+  },
+  {
+    slug: "google-duo",
+    label: "Google Duo",
+    company: "Google Duo",
+    sourceUrl: "https://developer.android.com/stories/apps/google-duo",
+  },
+  {
+    slug: "google-photos",
+    label: "Google Photos",
+    company: "Google Photos",
+    sourceUrl: "https://developer.android.com/stories/apps/google-photos",
+  },
+  {
+    slug: "reflectly",
+    label: "Reflectly",
+    company: "Reflectly",
+    sourceUrl: "https://developer.android.com/stories/apps/reflectly",
+  },
+  {
+    slug: "tamedia",
+    label: "Tamedia",
+    company: "Tamedia",
+    sourceUrl: "https://developer.android.com/stories/apps/tamedia",
+  },
+  {
+    slug: "roblox",
+    label: "Roblox",
+    company: "Roblox",
+    sourceUrl: "https://developer.android.com/stories/apps/roblox",
+  },
+  {
+    slug: "infinite-painter",
+    label: "Infinite painter",
+    company: "Infinite Painter",
+    sourceUrl: "https://developer.android.com/stories/apps/infinite-painter",
+  },
+  {
+    slug: "squid",
+    label: "Squid",
+    company: "Squid",
+    sourceUrl: "https://developer.android.com/stories/apps/squid",
+  },
+  {
+    slug: "evernote",
+    label: "Evernote",
+    company: "Evernote",
+    sourceUrl: "https://developer.android.com/stories/apps/evernote",
+  },
+  {
+    slug: "beautyplus",
+    label: "BeautyPlus",
+    company: "BeautyPlus",
+    sourceUrl: "https://developer.android.com/stories/apps/beautyplus",
+  },
+  {
+    slug: "tinder",
+    label: "Tinder",
+    company: "Tinder",
+    sourceUrl: "https://developer.android.com/stories/apps/tinder",
+  },
+  {
+    slug: "zillow",
+    label: "Zillow",
+    company: "Zillow",
+    sourceUrl: "https://developer.android.com/stories/apps/zillow",
+  },
+  {
+    slug: "iheartradio",
+    label: "iHeartRadio",
+    company: "iHeartRadio",
+    sourceUrl: "https://developer.android.com/stories/apps/iheartradio",
+  },
+  {
+    slug: "hike",
+    label: "Hike",
+    company: "Hike",
+    sourceUrl: "https://developer.android.com/stories/apps/hike",
+  },
+  {
+    slug: "spiegel-online",
+    label: "Spiegel Online",
+    company: "Spiegel Online",
+    sourceUrl: "https://developer.android.com/stories/apps/spiegel-online",
+  },
+  {
+    slug: "condenast-shopping",
+    label: "Glamour.de",
+    company: "Glamour.de",
+    sourceUrl: "https://developer.android.com/stories/apps/condenast-shopping",
+  },
+  {
+    slug: "el-mundo",
+    label: "El Mundo",
+    company: "El Mundo",
+    sourceUrl: "https://developer.android.com/stories/apps/el-mundo",
+  },
+  {
+    slug: "twitter-compose",
+    label: "Twitter - Compose",
+    company: "Twitter / X",
+    sourceUrl: "https://developer.android.com/stories/apps/twitter-compose",
+  },
+  {
+    slug: "twitter-kotlin",
+    label: "Twitter - Kotlin",
+    company: "Twitter / X",
+    sourceUrl: "https://developer.android.com/stories/apps/twitter-kotlin",
+  },
+  {
+    slug: "monzo-camerax",
+    label: "Monzo - CameraX",
+    company: "Monzo",
+    sourceUrl: "https://developer.android.com/stories/apps/monzo-camerax",
+  },
+  {
+    slug: "monzo-compose",
+    label: "Monzo - Compose",
+    company: "Monzo",
+    sourceUrl: "https://developer.android.com/stories/apps/monzo-compose",
+  },
+  {
+    slug: "truecaller",
+    label: "Truecaller",
+    company: "Truecaller",
+    sourceUrl: "https://developer.android.com/stories/apps/truecaller",
+  },
+  {
+    slug: "alarmy",
+    label: "Alarmy",
+    company: "Alarmy",
+    sourceUrl: "https://developer.android.com/stories/apps/alarmy",
+  },
+  {
+    slug: "smartnews",
+    label: "SmartNews",
+    company: "SmartNews",
+    sourceUrl: "https://developer.android.com/stories/apps/smartnews",
+  },
+  {
+    slug: "headspace",
+    label: "Headspace",
+    company: "Headspace",
+    sourceUrl: "https://developer.android.com/stories/apps/headspace",
+  },
+  {
+    slug: "headspace-excellence",
+    label: "Headspace App Excellence",
+    company: "Headspace",
+    sourceUrl: "https://developer.android.com/stories/apps/headspace-excellence",
+  },
+  {
+    slug: "mercari",
+    label: "Mercari - Compose",
+    company: "Mercari",
+    sourceUrl: "https://developer.android.com/stories/apps/mercari",
+  },
+  {
+    slug: "microsoft",
+    label: "Microsoft",
+    company: "Microsoft",
+    sourceUrl: "https://developer.android.com/stories/apps/microsoft",
+  },
+  {
+    slug: "microsoft-camerax",
+    label: "Microsoft - CameraX",
+    company: "Microsoft",
+    sourceUrl: "https://developer.android.com/stories/apps/microsoft-camerax",
+  },
+  {
+    slug: "zomato",
+    label: "Zomato",
+    company: "Zomato",
+    sourceUrl: "https://developer.android.com/stories/apps/zomato",
+  },
+  {
+    slug: "josh",
+    label: "Josh",
+    company: "Josh",
+    sourceUrl: "https://developer.android.com/stories/apps/josh",
+  },
+  {
+    slug: "lyft",
+    label: "Lyft",
+    company: "Lyft",
+    sourceUrl: "https://developer.android.com/stories/apps/lyft",
+  },
+  {
+    slug: "okcredit",
+    label: "OkCredit",
+    company: "OkCredit",
+    sourceUrl: "https://developer.android.com/stories/apps/okcredit",
+  },
+  {
+    slug: "swiggy",
+    label: "Swiggy",
+    company: "Swiggy",
+    sourceUrl: "https://developer.android.com/stories/apps/swiggy",
+  },
+  {
+    slug: "myjio",
+    label: "MyJio",
+    company: "MyJio",
+    sourceUrl: "https://developer.android.com/stories/apps/myjio",
+  },
+  {
+    slug: "jiosaavn",
+    label: "JioSaavn",
+    company: "JioSaavn",
+    sourceUrl: "https://developer.android.com/stories/apps/jiosaavn",
+  },
+  {
+    slug: "tiktok",
+    label: "TikTok",
+    company: "TikTok",
+    sourceUrl: "https://developer.android.com/stories/apps/tiktok",
+  },
+  {
+    slug: "futu",
+    label: "Futu",
+    company: "Futu",
+    sourceUrl: "https://developer.android.com/stories/apps/futu",
+  },
+  {
+    slug: "sharechat",
+    label: "ShareChat",
+    company: "ShareChat",
+    sourceUrl: "https://developer.android.com/stories/apps/sharechat",
+  },
+];
+
+function inferProblemAreas(source: AndroidStorySource): string[] {
+  const text = `${source.slug} ${source.label}`.toLowerCase();
+  const areas = ["Android", "App Story"];
+
+  if (text.includes("compose")) {
+    areas.push("UI Migration", "Developer Productivity");
+  }
+
+  if (text.includes("camerax")) {
+    areas.push("Camera", "Device Compatibility");
+  }
+
+  if (text.includes("kotlin")) {
+    areas.push("Kotlin Migration", "Code Quality");
+  }
+
+  if (text.includes("excellence")) {
+    areas.push("App Quality");
+  }
+
+  if (text.includes("startup") || ["josh", "zomato", "lyft", "tiktok"].includes(source.slug)) {
+    areas.push("Startup Time", "Performance");
+  }
+
+  if (text.includes("android-tv")) {
+    areas.push("Android TV");
+  }
+
+  return Array.from(new Set(areas));
+}
+
+function inferTechnologies(source: AndroidStorySource): string[] {
+  const text = `${source.slug} ${source.label}`.toLowerCase();
+  const technologies = ["Android", "Google Play"];
+
+  if (text.includes("compose")) {
+    technologies.push("Jetpack Compose");
+  }
+
+  if (text.includes("camerax")) {
+    technologies.push("CameraX");
+  }
+
+  if (text.includes("kotlin")) {
+    technologies.push("Kotlin");
+  }
+
+  if (text.includes("excellence") || ["josh", "zomato", "lyft", "tiktok"].includes(source.slug)) {
+    technologies.push("Android vitals", "Play Console");
+  }
+
+  if (text.includes("android-tv")) {
+    technologies.push("Android TV");
+  }
+
+  return Array.from(new Set(technologies));
+}
+
+function createSourceSeed(source: AndroidStorySource): CaseStudy {
+  const problemAreas = inferProblemAreas(source);
+  const technologies = inferTechnologies(source);
+
+  return {
+    slug: `android-story-${source.slug}`,
+    title: `${source.label} Android app story`,
+    company: source.company,
+    publisher: "Android Developers",
+    publisherType: "Developer Platform",
+    sourceUrl: source.sourceUrl,
+    year: "Source",
+    domain: "Android Apps",
+    problemAreas,
+    technologies,
+    metrics: [{ label: "Source type", value: "Android story" }],
+    summary: `${source.label} is an Android Developers app story source. Open the original story to review the details and promote it into a fully annotated case study.`,
+    problem:
+      "This source is cataloged for discovery first, so it needs a deeper review before we treat its problem statement as fully curated.",
+    solution:
+      "Use the Android Developers source page as the canonical reference, then enrich this record with the exact challenge, implementation details, metrics, and lessons.",
+    lessons: [
+      "Source seed records keep the catalog broad without pretending every case has been fully reviewed.",
+      "Company, platform, and technology metadata make the source searchable immediately.",
+      "Reviewed records can be promoted later with stronger summaries and metrics.",
+    ],
+    qualityScore: 2,
+  };
+}
+
+const curatedSourceUrls = new Set(curatedCaseStudies.map((study) => study.sourceUrl));
+
+export const caseStudies = [
+  ...curatedCaseStudies,
+  ...androidStorySources
+    .filter((source) => !curatedSourceUrls.has(source.sourceUrl))
+    .map(createSourceSeed),
+];
+
+export const allCompanies = Array.from(
+  new Set(caseStudies.map((study) => study.company)),
+).sort((a, b) => a.localeCompare(b));
 
 export const allProblemAreas = Array.from(
   new Set(caseStudies.flatMap((study) => study.problemAreas)),
