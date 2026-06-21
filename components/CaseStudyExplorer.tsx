@@ -308,7 +308,21 @@ export function CaseStudyExplorer() {
           <div className="discovery-block" aria-live="polite">
             {isDiscovering ? <p className="discovery-label">Searching sources...</p> : null}
             {!isDiscovering && discoveryError ? (
-              <p className="discovery-label">Search is temporarily unavailable.</p>
+              <div className="discovery-fallback">
+                <p className="discovery-label">Search is temporarily unavailable.</p>
+                <button
+                  className="discovery-reset-button"
+                  onClick={() => {
+                    setQuery("");
+                    setSelectedCompany("");
+                    setDiscoveryError("");
+                    setDiscoveryResults([]);
+                  }}
+                  type="button"
+                >
+                  Back to local list
+                </button>
+              </div>
             ) : null}
             {discoveryResults.length > 0 ? (
               <div className="discovery-results">

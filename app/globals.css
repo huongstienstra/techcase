@@ -559,6 +559,29 @@ select {
   margin: 8px 0 0;
 }
 
+.discovery-fallback {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.discovery-reset-button {
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: 18px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  min-height: 38px;
+  padding: 0 16px;
+}
+
+.discovery-reset-button:hover {
+  background: #000;
+}
+
 .topbar {
   background: var(--surface);
   border-bottom: 1px solid var(--line);
