@@ -147,4 +147,4 @@ Recommended settings:
 
 ## License
 
-No license has been selected yet.
+Authorized by Huong Nguyen (Vyvien). See `LICENSE` for details.
