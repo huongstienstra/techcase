@@ -147,4 +147,4 @@ Recommended settings:
 
 ## License
 
-Authorized by Huong Nguyen (Vyvien). See `LICENSE` for details.
+Authorized by [Huong Nguyen (Vyvien)](https://www.linkedin.com/in/huong-stienstra/). See `LICENSE` for details.

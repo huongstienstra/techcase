@@ -66,6 +66,8 @@ select {
   background: var(--surface);
   border-bottom: 1px solid var(--line);
   display: flex;
+  gap: 16px;
+  justify-content: space-between;
   min-height: 64px;
   padding: 0 40px;
   position: sticky;

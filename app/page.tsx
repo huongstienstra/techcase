@@ -9,6 +9,14 @@ export default function Home() {
             <a className="wordmark" href="/">
               Android Developers
             </a>
+            <a
+              className="link-button"
+              href="https://www.linkedin.com/in/huong-stienstra/"
+              rel="noreferrer"
+              target="_blank"
+            >
+              Huong Nguyen
+            </a>
           </header>
 
           <section className="intro">
